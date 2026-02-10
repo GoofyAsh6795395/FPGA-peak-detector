@@ -1,0 +1,7 @@
+sv xpm -i "../../../../../../../../../../../../Xilinx/2025.1/Vivado/data/rsb/busdef" --include "../../../Peak_Detector.gen/sources_1/ip/clk_wiz_0" --include "../../../Peak_Detector.gen/sources_1/ip/clk_wiz_1" --include "../../../Peak_Detector.gen/sources_1/ip/clk_wiz_2" \
+"C:/Xilinx/2025.1/Vivado/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv" \
+
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort
