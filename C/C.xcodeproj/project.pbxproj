@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9C8E0C2E2F3AB03E00DA5620 /* data_processor.c in Sources */ = {isa = PBXBuildFile; fileRef = 9C8E0C2D2F3AB03E00DA5620 /* data_processor.c */; };
+		9C4EC7982F4113040063C293 /* fifo.c in Sources */ = {isa = PBXBuildFile; fileRef = 9C4EC7972F4113040063C293 /* fifo.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,6 +23,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9C4EC7972F4113040063C293 /* fifo.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fifo.c; sourceTree = "<group>"; };
 		9C8E0C1F2F3A77BA00DA5620 /* C */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = C; sourceTree = BUILT_PRODUCTS_DIR; };
 		9C8E0C2D2F3AB03E00DA5620 /* data_processor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = data_processor.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -41,6 +42,7 @@
 		9C8E0C162F3A77BA00DA5620 = {
 			isa = PBXGroup;
 			children = (
+				9C4EC7972F4113040063C293 /* fifo.c */,
 				9C8E0C2D2F3AB03E00DA5620 /* data_processor.c */,
 				9C8E0C202F3A77BA00DA5620 /* Products */,
 			);
@@ -111,7 +113,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9C8E0C2E2F3AB03E00DA5620 /* data_processor.c in Sources */,
+				9C4EC7982F4113040063C293 /* fifo.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
