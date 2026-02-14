@@ -9,3 +9,7 @@
 # Folder metadata
 .Spotlight-V100
 .Trashes
+
+# Xcode user-specific state (do not commit)
+**/xcuserdata/
+**/*.xcuserstate
