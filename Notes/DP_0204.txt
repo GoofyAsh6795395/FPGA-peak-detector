@@ -1,0 +1,130 @@
+Typical structure of VHDL code:
+
+entity module1 is
+	port(
+		a: in std_logic;
+		b: in std_logic;
+		c: out std_logic;
+);
+end entity;
+
+architecture ....
+	component
+		a
+		b
+		c
+		d
+
+		
+	end component;
+	
+	signal invernal_variables: std_logic;
+	signal result_sig: type;
+begin------------------------------------------
+	defined signal, port
+	entity_name port map(,,,);
+	process()
+	begin
+		variable result: std_logic;
+		result_sig <= result;
+	end procrss;
+	
+	process()
+	begin
+		variable data: std_logic;
+		data := not result_sig;
+	end process;
+	
+	concurrent assignemnt...
+	.
+	.
+	.
+	
+end arch;
+
+
+Comparsion between assignment types:
+	1. := variable (sequential) assignment
+		It's sequenial! 
+	2. <= signal (concurrent) assignment
+		Sequence doesn't matter here because it simulates the interconnection of circuit.
+Example:
+
+signal sig1, sig2, sig3: std_logic;
+
+sig1 <= sig2 and sig3; 1.
+sig3 <= sig1 and sig2; 2.
+
+
+variable var1, var2, var3: std_logic;
+
+var1 := var2 + var3; 
+var3 := var1 - var2;
+
+Origionally, var1 = '5', var2 = '6', var3 = '7'
+
+1 -> 2: finally, var1 = 13, var2 = 6, var3 = 7;
+
+2 -> 1: var1 = 5, var2 = 6, var3 = -1;
+
+bit versus std_logic versus std_ulogic
+
+What's not allowed?
+
+signal ext1: std_logic;
+module2 port map(port3, ext1 & port2, ...)
+
+
+a <= clk & b (manipulation on clock is forbidden)
+
+c:
+
+Convert iterations, loops into FSMs:
+
+	int counter = 0;
+	while(counter < 3){
+		manipulation......
+		counter = counter + 1;
+	}
+
+1: c = 2
+2: c = 3
+3: c =4
+break;
+
+
+
+Pseudocode of findMax algorithm:
+
+max_value;
+max_index;
+buffer[7]
+
+push(a)
+
+
+result[7]
+
+while(counter <= NNN){
+	push(data);
+	if(buffer[3] > max){
+		save buffer to result.
+		max_index = f(counter);
+	}
+	
+}
+
+
+
+boundaries require further thinking: 
+
+if(NNN < 7) ???
+
+if(max_index < 3 or max_index > (counter - 3))
+
+if(muptile max_value){
+	
+}
+
+
+

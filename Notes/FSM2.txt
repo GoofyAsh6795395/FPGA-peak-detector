@@ -1,0 +1,42 @@
+library
+use
+
+entity
+
+architecture
+	
+begin
+	next_state_logic:
+	process()
+	begin
+		
+			...
+
+	end process;
+
+	
+	
+	update:
+	process(clk, reset)
+	begin
+		if rising_edge(clk) then
+			current_state <= next_state;
+		end if;
+	end process;
+
+	output:
+	process()
+		if current_state = 'A' then
+			output <= ...;
+		else if cureent_state = 'B' then
+			output <= ...;
+	end process;
+
+	
+end architecture;
+
+
+1. state_transition: find next_state
+2. output: 
+3. state_update: assign next_state
+	current <= next when rising_edge
