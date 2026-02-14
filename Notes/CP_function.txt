@@ -1,0 +1,36 @@
+Rx.:
+data: the command from pc
+valid:
+done:
+
+Tx.:
+
+txDone
+
+
+To Data Processor:
+
+byte: generated data
+
+
+Expected function:
+
+	Send the generated data to Tx.
+	Print the result, 
+	Retrieve data from PC
+	Detect ANNN sequence
+	Activate the data processor, communicate with Tx.
+	Echo
+	Type conversion (hexidecimal to ascii)
+
+
+Module division
+
+	ANNN pattern detector (parser)
+	Scheduler: control D.P. and Tx. after ANNN received.
+	Tx-manager:
+		-Echo
+		-Generated data
+		-Result
+	type-converter
+	

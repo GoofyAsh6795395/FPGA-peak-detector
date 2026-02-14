@@ -1,0 +1,71 @@
+library
+use
+
+entity
+	port(
+
+		o: out STD_LOGIC;
+	);
+architecture
+
+	type ABC is (s0, s1);
+	signal current_state, next_state: ABC;
+
+begin
+	next-state-logic:
+	process
+
+
+		case current_state is
+			when s0 =>
+				do...
+			when s1 =>
+				do...
+		end case;
+	
+		if current_state = s0 then
+
+		else if current_state = s1 then
+			if a = 2 then
+				next_state <= s0;
+			else
+				next_state <= s1;
+			end if;
+		end if;
+	end process;
+
+	control:
+	process
+		if rising_edge(clk) then
+			current_state <= next_state;
+	end process;
+
+	output logic:
+	process
+		if current_state = s0 then o <= 24;
+		else o < 45
+	end process;
+end;
+
+what's happening at every clock edge:
+Moore
+	state-transition (e.g. nextState -> currentState)
+
+Mealy
+	state-transition (e.g. nextState -> currentState)
+	output logic
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,368 @@
+m255
+K4
+z2
+Z0 !s12c _opt1
+Z1 !s99 nomlopt
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+Z2 !s12c _opt
+R1
+R2
+R1
+!s11e vcom 2024.3 2024.09, Sep 10 2024
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z3 dC:/Users/Xinrui Zhu/AppData/Local/quartus
+T_opt
+!s110 1770759508
+V7:ZTh]Ik?BAG44b8CWZ_[1
+04 13 10 work fsm_testbench behavioral 1
+=1-3c15c2dba3b4-698ba554-24-2738
+R1
+Z4 !s12f OEM100
+Z5 !s12b OEM100
+Z6 !s124 OEM10U2 
+Z7 !s135 nogc
+Z8 o-quiet -auto_acc_if_foreign -work work +acc
+Z9 tCvgOpt 0
+n@_opt
+Z10 OL;O;2024.3;79
+R3
+T_opt1
+!s110 1770892871
+V?>IY_SD5g2W]k6<T]g=Gm0
+04 15 10 work group_testbench behavioral 1
+=1-3c15c2dba3b4-698dae46-21d-544
+R1
+R4
+R5
+R6
+R7
+R8
+R9
+n@_opt1
+R10
+R3
+Pcommon_pack
+Z11 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
+Z12 DPx4 ieee 14 std_logic_1164 0 22 cVAk:aDinOX8^VGI1ekP<3
+!i122 130
+w1770654448
+Z13 dC:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice
+8C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/common_pack.vhd
+FC:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/common_pack.vhd
+l0
+L4 129
+VPY[Az:e;?LiSCjSIkYjT62
+!s100 _>SZD4:fbJX8`QaV:PbOC1
+Z14 OL;C;2024.3;79
+32
+Z15 !s110 1770892833
+!i10b 1
+Z16 !s108 1770892833.000000
+!s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/common_pack.vhd|
+!s107 C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/common_pack.vhd|
+!i113 0
+Z17 o-work work -2002 -explicit
+Z18 tExplicit 1 CvgOpt 0
+Edatacounter
+Z19 w1770833450
+R11
+R12
+!i122 129
+R13
+Z20 8C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/dataCounter.vhd
+Z21 FC:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/dataCounter.vhd
+l0
+L4 1
+VUY36a4?fZ4^d^oLza:ZL01
+!s100 :Ed2kA2]ezdG[86i]4EB@2
+R14
+32
+Z22 !s110 1770892832
+!i10b 1
+Z23 !s108 1770892832.000000
+Z24 !s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/dataCounter.vhd|
+Z25 !s107 C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/dataCounter.vhd|
+!i113 0
+R17
+R18
+Asynth
+R11
+R12
+DEx4 work 11 datacounter 0 22 UY36a4?fZ4^d^oLza:ZL01
+!i122 129
+l20
+L14 54
+V>^]L<G^T_b65o1TSoCZ2D3
+!s100 bYo[Dk75CYann=X8j=^=L3
+R14
+32
+R22
+!i10b 1
+R23
+R24
+R25
+!i113 0
+R17
+R18
+Edatagen
+Z26 w1770654303
+Z27 DPx4 work 11 common_pack 0 22 PY[Az:e;?LiSCjSIkYjT62
+R11
+R12
+!i122 128
+R13
+Z28 8C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/dataGen.vhd
+Z29 FC:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/dataGen.vhd
+l0
+L5 1
+V1bMDfP:igB?f1chI1>SaC3
+!s100 2KmO3BR117LiL0c[ZmJFV2
+R14
+32
+R22
+!i10b 1
+R23
+Z30 !s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/dataGen.vhd|
+Z31 !s107 C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/dataGen.vhd|
+!i113 0
+R17
+R18
+Abehav
+R27
+R11
+R12
+DEx4 work 7 datagen 0 22 1bMDfP:igB?f1chI1>SaC3
+!i122 128
+l19
+L15 37
+V_lhi:I7ke9;J4;5CcSYJg2
+!s100 JCCg=B_WJ[J^nenXhoLa`0
+R14
+32
+R22
+!i10b 1
+R23
+R30
+R31
+!i113 0
+R17
+R18
+Efsm_sample
+Z32 w1770881021
+R11
+R12
+!i122 134
+Z33 dC:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/FSM
+Z34 8C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/FSM_sample.vhd
+Z35 FC:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/FSM_sample.vhd
+l0
+Z36 L34 1
+VM7RNE?J1:5oz@?P_8?2I@2
+!s100 Kki?zh371fjE2nH2H>GBD3
+R14
+32
+Z37 !s110 1771106828
+!i10b 1
+Z38 !s108 1771106828.000000
+Z39 !s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/FSM_sample.vhd|
+Z40 !s107 C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/FSM_sample.vhd|
+!i113 0
+R17
+R18
+Abehavioral
+R11
+R12
+DEx4 work 10 fsm_sample 0 22 M7RNE?J1:5oz@?P_8?2I@2
+!i122 134
+l44
+L39 58
+V45eED7zo6Tk?f:m<HTUk?3
+!s100 jNITbke]OmS<g;5UElLFX2
+R14
+32
+R37
+!i10b 1
+R38
+R39
+R40
+!i113 0
+R17
+R18
+Efsm_testbench
+Z41 w1770712168
+R11
+R12
+!i122 135
+R33
+Z42 8C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/FSM_testbench.vhd
+Z43 FC:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/FSM_testbench.vhd
+l0
+R36
+Vl0MRVM`oA=FCF9EJljTZF1
+!s100 J<A00ijWRe@:VfDQM?OI_1
+R14
+32
+Z44 !s110 1771106829
+!i10b 1
+Z45 !s108 1771106829.000000
+Z46 !s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/FSM_testbench.vhd|
+Z47 !s107 C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/FSM_testbench.vhd|
+!i113 0
+R17
+R18
+Abehavioral
+R11
+R12
+DEx4 work 13 fsm_testbench 0 22 l0MRVM`oA=FCF9EJljTZF1
+!i122 135
+l46
+L38 144
+VeQ<nPDOMlEOKGC`J_h^?>0
+!s100 QO@>JN<LP3^zVT^7Z`Uzj3
+R14
+32
+R44
+!i10b 1
+R45
+R46
+R47
+!i113 0
+R17
+R18
+Egroup_testbench
+Z48 w1770892797
+R11
+R12
+!i122 138
+R33
+Z49 8C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/group_testbench.vhd
+Z50 FC:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/group_testbench.vhd
+l0
+R36
+VkEX>TBle@DTGJg0SV:9Za0
+!s100 Macf?GZ@e<E]>RhhlV?mX2
+R14
+32
+R44
+!i10b 1
+R45
+Z51 !s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/group_testbench.vhd|
+Z52 !s107 C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/group_testbench.vhd|
+!i113 0
+R17
+R18
+Abehavioral
+R11
+R12
+Z53 DEx4 work 15 group_testbench 0 22 kEX>TBle@DTGJg0SV:9Za0
+!i122 138
+l47
+Z54 L38 145
+Z55 VZcijP<Ez@:l7aPFdaO]4E3
+Z56 !s100 @QgQCb@;8:U^2AaA^A0OI3
+R14
+32
+R44
+!i10b 1
+R45
+R51
+R52
+!i113 0
+R17
+R18
+Ejulia
+Z57 w1770892782
+R11
+R12
+!i122 137
+R33
+Z58 8C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/Julia.vhd
+Z59 FC:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/Julia.vhd
+l0
+L14 1
+VMG?5WOdG1PWB6>V3QEj@]2
+!s100 HH_3GGO2=60GGD:TXdTG53
+R14
+32
+R44
+!i10b 1
+R45
+Z60 !s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/Julia.vhd|
+Z61 !s107 C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/Julia.vhd|
+!i113 0
+R17
+R18
+Artl
+R11
+R12
+DEx4 work 5 julia 0 22 MG?5WOdG1PWB6>V3QEj@]2
+!i122 137
+l34
+L26 94
+Vo8gZL@7lSLoi5UA=28VG@2
+!s100 E]`C^NO>bdS85_FhO=^FS2
+R14
+32
+R44
+!i10b 1
+R45
+R60
+R61
+!i113 0
+R17
+R18
+Erenyuan
+Z62 w1771010559
+Z63 DPx4 ieee 11 numeric_std 0 22 aU^R8eGcicLcUFIaBQSL>3
+R11
+R12
+!i122 136
+R33
+Z64 8C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/Ren_yuan.vhd
+Z65 FC:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/Ren_yuan.vhd
+l0
+L5 1
+VEgK0FMF1TgOd78c9Pzl793
+!s100 MZbV>]jD1zU>k?FG>HaH`3
+R14
+32
+R44
+!i10b 1
+R45
+Z66 !s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/Ren_yuan.vhd|
+Z67 !s107 C:/Users/Xinrui Zhu/Documents/Projects_VHDL/fsm_practice/Ren_yuan.vhd|
+!i113 0
+R17
+R18
+Asim
+R63
+R11
+R12
+DEx4 work 7 renyuan 0 22 EgK0FMF1TgOd78c9Pzl793
+!i122 136
+l17
+L12 56
+V[nh^dQ3^e5i=ldQ6<BcA60
+!s100 GoO7;g]mZQUQ[KC@O?d`H0
+R14
+32
+R44
+!i10b 1
+R45
+R66
+R67
+!i113 0
+R17
+R18
