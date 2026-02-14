@@ -31,6 +31,7 @@ int main(int argc, const char* argv[]){
             data = -200; //Padding dummy value;
         }
         
+        /*Fill the data acquired into the buffer*/
         for(int index = 0; index <= 5; index ++){
             buffer[index] = buffer[index + 1];
         }
