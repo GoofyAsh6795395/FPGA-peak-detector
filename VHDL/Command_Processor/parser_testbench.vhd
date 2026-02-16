@@ -1,0 +1,183 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+entity parser_tb is
+
+end entity;
+
+
+architecture sim of parser_tb is
+	component parser is
+		port(
+			clk: in STD_LOGIC;
+			reset: in STD_LOGIC;
+			command: in STD_LOGIC_VECTOR (7 downto 0);
+			enable: in STD_LOGIC_VECTOR (7 downto 0);
+			isANNN: out STD_LOGIC;
+			isL: out STD_LOGIC;
+			isP: out STD_LOGIC
+		);
+	end component;
+	signal clk_tb, reset_tb, isANNN_tb, isL_tb, isP_tb: STD_LOGIC;
+	signal command_tb: STD_LOGIC_VECTOR (7 downto 0);
+
+
+	constant ascii_a: STD_LOGIC_VECTOR (7 downto 0) := x"61";
+	constant ascii_a_cap: STD_LOGIC_VECTOR (7 downto 0) := x"41";
+	constant ascii_l: STD_LOGIC_VECTOR (7 downto 0) := x"6C";
+	constant ascii_l_cap: STD_LOGIC_VECTOR (7 downto 0) := x"4C";
+	constant ascii_p: STD_LOGIC_VECTOR (7 downto 0) := x"50";
+	constant ascii_p_cap: STD_LOGIC_VECTOR (7 downto 0) := x"70";
+	constant ascii_0: STD_LOGIC_VECTOR (7 downto 0) := x"30";
+	constant ascii_9: STD_LOGIC_VECTOR (7 downto 0) := x"39";
+
+begin
+	parserUnderTest: parser port map (clk_tb, reset_tb, command_tb, isANNN_tb, isL_tb, isP_tb);
+	process
+	begin
+
+	clk_tb <= '1';
+	command_tb <= ascii_l;
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+	command_tb <= ascii_l_cap;
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+	command_tb <= ascii_p;
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+	command_tb <= ascii_a;
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+	command_tb <= ascii_0;
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+	command_tb <= ascii_0;
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+	command_tb <= ascii_0;
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+	command_tb <= ascii_0;
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+	command_tb <= ascii_0;
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+	command_tb <= ascii_0;
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+	command_tb <= ascii_0;
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+	command_tb <= ascii_a;
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+	command_tb <= ascii_l_cap;
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        clk_tb <= '0';
+        wait for 10 ns;
+        
+        clk_tb <= '1';
+        wait for 10 ns;
+        
+        wait;
+	end process;
+end architecture;

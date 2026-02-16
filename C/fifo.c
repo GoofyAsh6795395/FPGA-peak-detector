@@ -34,7 +34,7 @@ int main(int argc, const char* argv[]){
     int queue[depth];
     int head = 0, tail = 0;
     int counter = 0;
-    for(int index = 0; index <= depth; index ++){
+    for(int index = 0; index < depth; index ++){
         queue[index] = 0;
     }
     char command[128];

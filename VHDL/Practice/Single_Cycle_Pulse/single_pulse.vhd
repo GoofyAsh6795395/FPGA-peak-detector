@@ -1,0 +1,112 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+entity single_pulse is
+	port(
+		clk: in STD_LOGIC;
+		level_in: in STD_LOGIC;
+		output: out STD_LOGIC
+	);
+end entity;
+
+architecture reg of single_pulse is
+	signal level_reg: STD_LOGIC;
+begin
+	process(clk)
+	begin
+		if rising_edge(clk) then
+			level_reg <= level_in;
+			if level_reg = '0' and level_in = '1' then
+				output <= '1';
+			else
+				output <= '0';
+			end if;
+		end if;
+	end process;
+end architecture;
+
+architecture FSM of single_pulse is
+	type enum is (init, read0, read1);
+	signal current_state, next_state: enum := init;
+	--signal send: STD_LOGIC := '0';
+begin
+	next_state_logic:
+	process(current_state, level_in)
+	begin
+		next_state <= current_state;
+		case current_state is
+			when init =>
+				if level_in = '0' then
+					next_state <= read0;
+				end if;
+			when read0 =>
+				if level_in = '1' then
+					next_state <= read1;
+				end if;
+			when read1 =>
+		end case;	
+	end process;
+
+	update:
+	process(clk)
+	begin
+		if rising_edge (clk) then
+			current_state <= next_state;
+			--Mealy style decision here: out = f(state, input)
+			--Another logic: current_state = read0 and next_state = read1 then
+			if current_state = read0 and level_in = '1' then
+				output <= '1';
+			else
+				output <= '0';
+			end if;
+		end if;
+	end process;
+end architecture;
+
+architecture FSM_2nd of single_pulse is
+	type enum is (init, read0, read1);
+	signal current_state, next_state: enum := init;
+	signal send, send_next: STD_LOGIC := '0';
+begin
+	next_state_logic:
+	process(current_state, level_in)
+	begin
+		next_state <= current_state;
+		case current_state is
+			when init =>
+				if level_in = '0' then
+					next_state <= read0;
+				end if;
+			when read0 =>
+				if level_in = '1' then
+					next_state <= read1;
+				end if;
+			when read1 =>
+		end case;	
+	end process;
+	
+	output_logic:
+	process(current_state, send)
+	begin
+		output <= '0';
+		send_next <= '0';
+		if current_state = read1 then
+			if send = '0' then
+				output <= '1';
+				send_next <= '1';
+			else
+				output <= '0';
+				send_next <= '1';
+			end if;
+		end if;
+	end process;
+	
+	update:
+	process(clk)
+	begin
+		if rising_edge (clk) then
+			current_state <= next_state;
+			send <= send_next;
+		end if;
+	end process;
+end architecture;
