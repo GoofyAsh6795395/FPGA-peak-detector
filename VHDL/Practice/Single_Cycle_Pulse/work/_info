@@ -1,15 +1,19 @@
 m255
 K4
 z2
-Z0 !s12c _opt
+Z0 !s12c _opt1
 Z1 !s99 nomlopt
 R0
 R1
-R0
+Z2 !s12c _opt
 R1
-R0
+R2
 R1
-R0
+R2
+R1
+R2
+R1
+R2
 R1
 !s11e vcom 2024.3 2024.09, Sep 10 2024
 13
@@ -18,139 +22,236 @@ R1
 !i10e 25
 !i10f 100
 cModel Technology
-dC:/Users/Xinrui Zhu/AppData/Local/quartus
+Z3 dC:/Users/Xinrui Zhu/AppData/Local/quartus
 T_opt
 !s110 1771278372
 Vc?fz42DR5BNZf0=k_bIW^0
 04 22 3 work single_pulse_testbench rtl 1
 =1-3c15c2dba3b4-69939023-290-1d2c
 R1
-!s12f OEM100
-!s12b OEM100
+Z4 !s12f OEM100
+Z5 !s12b OEM100
 !s124 OEM10U4 
-!s135 nogc
-o-quiet -auto_acc_if_foreign -work work +acc
-tCvgOpt 0
+Z6 !s135 nogc
+Z7 o-quiet -auto_acc_if_foreign -work work +acc
+Z8 tCvgOpt 0
 n@_opt
-OL;O;2024.3;79
+Z9 OL;O;2024.3;79
+R3
+T_opt1
+!s110 1771311556
+VUJDLF:ioFzI1VA999TD^W1
+04 13 10 work dff_testbench simulation 1
+=1-3c15c2dba3b4-699411c4-6f-5580
+R1
+R4
+R5
+!s124 OEM10U2 
+R6
+R7
+R8
+n@_opt1
+R9
+Edff
+Z10 w1771311061
+Z11 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
+Z12 DPx4 ieee 14 std_logic_1164 0 22 cVAk:aDinOX8^VGI1ekP<3
+!i122 32
+Z13 dC:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse
+Z14 8C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/dff.vhd
+Z15 FC:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/dff.vhd
+l0
+L4 1
+V3_b1=T_:kRRzRY`3>YZPX0
+!s100 fSLihE^4<VoDD3OG4hemi0
+Z16 OL;C;2024.3;79
+32
+Z17 !s110 1771311545
+!i10b 1
+Z18 !s108 1771311545.000000
+Z19 !s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/dff.vhd|
+Z20 !s107 C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/dff.vhd|
+!i113 0
+Z21 o-work work -2002 -explicit
+Z22 tExplicit 1 CvgOpt 0
+Asimulation
+R11
+R12
+DEx4 work 3 dff 0 22 3_b1=T_:kRRzRY`3>YZPX0
+!i122 32
+l13
+L12 9
+VEz;?:GBJNMhooH@1b>^bg1
+!s100 FJ`6::ZJ2N@m5GzDE8g5?1
+R16
+32
+R17
+!i10b 1
+R18
+R19
+R20
+!i113 0
+R21
+R22
+Edff_testbench
+Z23 w1771311536
+R11
+R12
+!i122 33
+R13
+Z24 8C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/dff_testbench.vhd
+Z25 FC:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/dff_testbench.vhd
+l0
+L4 1
+VSEWSBDh?SQ6fSc]23RLoG2
+!s100 mV9WNL=F0J]ZdLY:_^ff53
+R16
+32
+R17
+!i10b 1
+R18
+Z26 !s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/dff_testbench.vhd|
+Z27 !s107 C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/dff_testbench.vhd|
+!i113 0
+R21
+R22
+Asimulation
+R11
+R12
+DEx4 work 13 dff_testbench 0 22 SEWSBDh?SQ6fSc]23RLoG2
+!i122 33
+l21
+L12 54
+VLSob;=F0^EBSUH3M=O_`N2
+!s100 i46PZ6I[RVZE[>2K6i`U41
+R16
+32
+R17
+!i10b 1
+R18
+R26
+R27
+!i113 0
+R21
+R22
 Esingle_pulse
-Z2 w1771278344
-Z3 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
-Z4 DPx4 ieee 14 std_logic_1164 0 22 cVAk:aDinOX8^VGI1ekP<3
-!i122 10
-Z5 dC:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse
-Z6 8C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse.vhd
-Z7 FC:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse.vhd
+Z28 w1771278344
+R11
+R12
+!i122 30
+R13
+Z29 8C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse.vhd
+Z30 FC:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse.vhd
 l0
 L4 1
 VCNj;b2b<dO[Y0C:2cCn6L3
 !s100 jVA:JEVL?nm86Mg2oQ2_@3
-Z8 OL;C;2024.3;79
+R16
 32
-Z9 !s110 1771278362
+R17
 !i10b 1
-Z10 !s108 1771278362.000000
-Z11 !s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse.vhd|
-Z12 !s107 C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse.vhd|
+R18
+Z31 !s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse.vhd|
+Z32 !s107 C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse.vhd|
 !i113 0
-Z13 o-work work -2002 -explicit
-Z14 tExplicit 1 CvgOpt 0
+R21
+R22
 Afsm_2nd
-R3
-R4
-Z15 DEx4 work 12 single_pulse 0 22 CNj;b2b<dO[Y0C:2cCn6L3
-!i122 10
+R11
+R12
+Z33 DEx4 work 12 single_pulse 0 22 CNj;b2b<dO[Y0C:2cCn6L3
+!i122 30
 l70
 L66 47
 V=jZO5CZD_RAlobh<>GV:i0
 !s100 VQYPaa?KR8Rg?eY8Z9ZX61
-R8
+R16
 32
-R9
+R17
 !i10b 1
-R10
+R18
+R31
+R32
+!i113 0
+R21
+R22
+Afsm
 R11
 R12
-!i113 0
-R13
-R14
-Afsm
-R3
-R4
-R15
-!i122 10
+R33
+!i122 30
 l32
 L28 37
 VRMdXB<`X0:BDR]FSjPP1X2
 !s100 804fn_i=nZ6lk@12oz?I81
-R8
+R16
 32
-R9
+R17
 !i10b 1
-R10
+R18
+R31
+R32
+!i113 0
+R21
+R22
+Areg
 R11
 R12
-!i113 0
-R13
-R14
-Areg
-R3
-R4
-R15
-!i122 10
+R33
+!i122 30
 l14
 L12 15
 V^TO=N]0BD8<NmbODnEobS1
 !s100 k:gO3mMEL>G5PDM5Kf50=0
-R8
+R16
 32
-R9
+R17
 !i10b 1
-R10
+R18
+R31
+R32
+!i113 0
+R21
+R22
+Esingle_pulse_testbench
+Z34 w1771276846
 R11
 R12
-!i113 0
+!i122 31
 R13
-R14
-Esingle_pulse_testbench
-Z16 w1771276846
-R3
-R4
-!i122 11
-R5
-Z17 8C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse_testbench.vhd
-Z18 FC:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse_testbench.vhd
+Z35 8C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse_testbench.vhd
+Z36 FC:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse_testbench.vhd
 l0
 L4 1
 V0dd6AibJJl^alMo?knM5C0
 !s100 2@ne@[DG76LzaYORYS2BP0
-R8
+R16
 32
-R9
+R17
 !i10b 1
-R10
-Z19 !s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse_testbench.vhd|
-Z20 !s107 C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse_testbench.vhd|
+R18
+Z37 !s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse_testbench.vhd|
+Z38 !s107 C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Practice/Single_Cycle_Pulse/single_pulse_testbench.vhd|
 !i113 0
-R13
-R14
+R21
+R22
 Artl
-R15
-R3
-R4
+R33
+R11
+R12
 DEx4 work 22 single_pulse_testbench 0 22 0dd6AibJJl^alMo?knM5C0
-!i122 11
+!i122 31
 l19
 L7 58
 V<4J50l6U91@Unnj;liTnM3
 !s100 ?caDTLQZd0ELecX1MN_eM0
-R8
+R16
 32
-R9
+R17
 !i10b 1
-R10
-R19
-R20
+R18
+R37
+R38
 !i113 0
-R13
-R14
+R21
+R22
