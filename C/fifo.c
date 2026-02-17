@@ -45,16 +45,16 @@ int main(int argc, const char* argv[]){
             if(counter > 0){
                 output = pop(queue, &head, &tail);
                 printf("Output: %d\n", output);
+                counter -= 1;
             }else{
                 printf("Access Deined\n");
             }
             print(queue);
-            counter -= 1;
         }else{
             int input = 0;
             if(sscanf(command, "write %d", &input) == 1){
-                counter += 1;
                 if(counter < depth){
+                    counter += 1;
                     push(input, queue, &tail);
                 }else{
                     printf("Access Deined\n");
