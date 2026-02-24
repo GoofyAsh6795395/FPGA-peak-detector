@@ -13,31 +13,36 @@ entity fifo is
 	);
 end entity;
 
-architecture synth of fifo is
-	--Declare the fifo type and  
+architecture algorithm of fifo is
+	--Declare the fifo type and instantiate it. 
 	type memory_type is  array (0 to 7) of STD_LOGIC_VECTOR (7 downto 0);
-	signal memory: memory_type;
+	signal queue: memory_type := (others => (others => '0'));
+
+	--Register the write pointer, read pointer, counter.
 	signal head, tail: integer range 0 to 7 := 0;
 	signal head_reg, tail_reg: integer range 0 to 7 := 0;
-	signal counter, counter_reg: integer range 0 to 7 : = 0;
+	signal counter, counter_next: integer range 0 to 7 := 0;
 begin
-	data_out <= memory(head);
-	isEmpty <= '1' when counter = 0 else '1';
+	data_out <= queue(head);
+	isEmpty <= '1' when counter = 0 else '0';	--Use stablised counter signal, or there may be gliches and functional errors.
 
 	counter_update:
-	process
-		
+	process(dequeue, enqueue)
 	begin
-
+		--To avoid latch inferrence.
+		counter_next <= counter;
+		if dequeue = '1' and enqueue = '0' then
+			if counter /= 0 then	--Dequeue request detected and fifo is not empty.
+				counter_next <= counter - 1;
+			end if;
+		elsif dequeue = '0' and enqueue = '1' then
+			if counter /= 8 then	--Enqueue request detected and fifo is not full.
+				counter_next <= counter + 1;
+			end if;
+		end if;
 	end process;
 	
-	readLogic:
-	process
-	begin
-
-	end process;
-
-	push_pop_logic:
+	clocked_control_unit:
 	process(clk, reset)
 	begin
 		if rising_edge(clk) then
@@ -45,18 +50,27 @@ begin
 				head <= 0;
 				tail <= 0;
 				counter <= 0;
+				queue <= (others => (others => '0'));	--Aggregate style assignment
 			else
+				counter <= counter_next;
+				--Because of the sequential feature of the assignments inside process block.
+				--It could be used in the circumstance where different conditions has their own priority.
+				--Here, dequeue request is checked first to ensure the behaviour under-controlled when dequeue and enqueue are requested at same time.
+				if(dequeue = '1') then
+					if counter /= 0 then
+						head <= (head + 1) mod 8;
+					end if;
+				end if;
+
 				if(enqueue = '1')then
 					--New data will be dumped if fifo is full.
 					--Take care of the combinational loop here, don't use counter_next signal.
-					if counter < 8 then
-						memory(tail) <= data_in;
+					if counter /= 8 then
+						queue(tail) <= data_in;
 						tail <= (tail + 1) mod 8;
 					end if;
 				end if;
-				
 			end if;
 		end if;
 	end process;
-
 end architecture;

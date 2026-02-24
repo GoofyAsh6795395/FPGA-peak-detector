@@ -198,8 +198,8 @@ Commit:
 	Please take actions on:
 	1. Reset manipulations...
 	2. Data type of maxIndex, maxValue and their corresponding registered signal.
-		Whether binary vector or integer?
-		How will it be compared with number from buffer?
+			Whether binary vector or integer?
+			How will it be compared with number from buffer?
 	3. Integer -> BCD while send the result and data back, ranging from index, byte and result...
 	4. How to initialise memory grid to be 0, 0, ....
 	5. Check sensitivity list, from datapath to state-transition logic.
@@ -209,7 +209,12 @@ Commit:
 	9. How to toggle ctrl1 signal? (current one doesn't work because...)
 	10. Check boundary conditions...
 	11. Avoid multiple drive.
-	12. Try HLS(High Level Synthesis)!
+	12. Take care of combinational loop...
+	
+	Other suggestions beyond code:
+	1. A corresponding ASM chart maybe required.
+		Try Microsoft Visio.
+	2. Try HLS(High Level Synthesis)!
 
 Next modified on...
 */
