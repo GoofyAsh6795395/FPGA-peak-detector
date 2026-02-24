@@ -35,8 +35,10 @@ FSM
 			next_state <= s0;
 	end case;
 
-maybe 00, 01, 10, 11
-one-hot: 001, 010, 100, 5 undefined: (111)
+Encoding method for totally three states:
+maybe 00, 01, 10, 11 like binary, where one combination is unused.
+one-hot: 001, 010, 100, 5 undefined: (111) and now, more than half combination is others.
+So it's essential to indicate the behaviour when current state is not defined.
 
 
 	
@@ -81,7 +83,11 @@ b changes,
 	1, 2, 3
 
 锁存推断(LATCH inferrence)
-1. closure if-else chain
+1. closure if-else chain: 
+If not, VHDL will keep the original value on other branch (has memory).
+However, not use D-ff, instead, D-latch since the subroutine is trigger by voltage level condition
+instead of clocking edge.
+
 	process
 	begin
 		if clk = 1 then q <= d;
@@ -93,7 +99,9 @@ b changes,
 		if condition then a <= '0';
 		else
 	end;
+
 2. assign at first
+To cover up everything first and do additional changes later if a certain condition of assignment is satifsied.
 
 Register feature
 

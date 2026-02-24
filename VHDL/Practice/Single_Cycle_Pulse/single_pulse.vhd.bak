@@ -90,9 +90,14 @@ begin
 	begin
 		output <= '0';
 		send_next <= '0';
-		if current_state = read1 and send = '0' then
-			output <= '1';
-			send_next <= '1';
+		if current_state = read1 then
+			if send = '0' then
+				output <= '1';
+				send_next <= '1';
+			else
+				output <= '0';
+				send_next <= '1';
+			end if;
 		end if;
 	end process;
 	

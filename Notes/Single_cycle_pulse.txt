@@ -1,0 +1,22 @@
+How to send a certain signal during exactly one clocking cycle?
+1. an extra state
+2. an extra statistical variable
+	if cur_state = ....
+		if sent = 0
+			out <= 1;
+			sent <= 1;
+		else
+			out <= 0;
+		end if;
+	end if;
+3. when state transit...
+	if rising_edge (clk) then
+		if cur_state = t0 and next_state = t1
+			out <= 1;
+		else
+			out <= 0;
+		end if;
+	end if
+4. when state transit
+	if cur_state <= t0 and condition_transit
+		out <= 1;
