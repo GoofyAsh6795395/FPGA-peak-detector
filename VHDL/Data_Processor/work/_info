@@ -1,0 +1,33 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+dC:/Users/Xinrui Zhu/AppData/Local/quartus
+Edata_processor
+w1771946815
+DPx4 ieee 11 numeric_std 0 22 aU^R8eGcicLcUFIaBQSL>3
+DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
+DPx4 ieee 14 std_logic_1164 0 22 cVAk:aDinOX8^VGI1ekP<3
+!i122 6
+dC:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Data_Processor
+8C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Data_Processor/data_processor.vhd
+FC:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Data_Processor/data_processor.vhd
+l0
+L5 1
+V61kD]]G`GeLzcI6X<4Bai2
+!s100 6bimfWmM7zod:PQSKG1De3
+OL;C;2024.3;79
+32
+!s110 1771946817
+!i10b 1
+!s108 1771946817.000000
+!s90 -reportprogress|300|-work|work|-2002|-explicit|-vopt|-stats=none|C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Data_Processor/data_processor.vhd|
+!s107 C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Data_Processor/data_processor.vhd|
+!i113 0
+o-work work -2002 -explicit
+tExplicit 1 CvgOpt 0

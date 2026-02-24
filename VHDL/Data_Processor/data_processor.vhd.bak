@@ -1,0 +1,214 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.NUMERIC_STD.all;
+
+entity data_processor is
+	port(
+		clk: in STD_LOGIC;
+		reset: in STD_LOGIC;
+
+		--To dataGen:
+		ctrl1: out STD_LOGIC;
+		ctrl2: in STD_LOGIC;
+		data: in STD_LOGIC_VECTOR(7 downto 0);
+		
+		--To cmdProc:
+		start: in STD_LOGIC;
+		numWords: in STD_LOGIC_VECTOR(11 downto 0);
+		seqDone: out STD_LOGIC;
+		dataReady: out STD_LOGIC;
+
+		--Data:
+		maxIndex: out STD_LOGIC_VECTOR(11 downto 0);	--BCD encoding
+		dataResult: out STD_LOGIC_VECTOR(55 downto 0);	--Binary sequence, using 2's complement
+		byte: out STD_LOGIC_VECTOR(7 downto 0)
+	);
+end entity;
+
+architecture synth of data_processor is
+	type stateType is (idle, request, processing, response);
+	type memory is array (0 to 6) of STD_LOGIC_VECTOR(7 downto 0);
+	signal buf, buf_next: memory;
+	signal result, result_next: memory;
+
+	signal current_state, next_state: stateType := idle;
+	signal ctrl2_delayed: STD_LOGIC;
+	signal finished, finished_reg: STD_LOGIC := '1';
+	signal NNN, NNN_reg: integer := 0;
+
+	signal max_value, max_index: integer := 0;
+	signal max_value_reg, max_index_reg: integer := 0;
+	signal counter, counter_next: integer := 0;
+	
+begin
+	state_transition_logic:
+	process(current_state, start)
+	begin
+		next_state <= current_state;
+		case current_state is
+			when idle =>
+				if start = '1' then
+					next_state <= request;
+				end if;
+			when request =>
+				if (ctrl2 xor ctrl2_delayed) = '1' then
+					next_state <= processing;
+				else
+					next_state <= request;
+				end if;
+			when processing =>
+				if counter >= NNN and counter < (NNN + 3) then
+					--stall.
+					next_state <= processing;
+				else
+					next_state <= response;
+				end if;
+			when response =>
+				next_state <= idle;
+			when others =>
+				next_state <= idle;
+		end case;
+	end process;
+
+	datapath:
+	process(current_state)
+	variable ones, tens, hundreds: integer := 0;
+	begin
+		dataReady <= '0';
+		seqDone <= '0';
+		NNN_reg <= NNN;
+		counter_next <= counter;
+		finished_reg <= finished;
+
+		buf_next(0) <= buf(0);
+		buf_next(1) <= buf(1);
+		buf_next(2) <= buf(2);
+		buf_next(3) <= buf(3);
+		buf_next(4) <= buf(4);
+		buf_next(5) <= buf(5);
+		buf_next(6) <= buf(6);
+		
+		result_next(0) <= result(0);
+		result_next(1) <= result(1);
+		result_next(2) <= result(2);
+		result_next(3) <= result(3);
+		result_next(4) <= result(4);
+		result_next(5) <= result(5);
+		result_next(6) <= result(6);
+
+		max_value_reg <= max_value;
+		max_index_reg <= max_index;
+		
+		case current_state is
+			when idle =>
+				if start = '1' then
+					if finished = '1' then
+						counter_next <= 0;
+						finished_reg <= '0';
+						
+						--Slice BCD
+						hundreds := to_integer(unsigned(numWords(11 downto 8)));
+						tens := to_integer(unsigned(numWords(7 downto 4)));
+						ones := to_integer(unsigned(numWords(3 downto 0)));
+						NNN_reg <= (hundreds * 100 + tens * 10 + ones);
+					else
+						counter_next <= counter + 1;
+					end if;
+				end if;
+			when processing =>
+				buf_next(0) <= buf(1);
+				buf_next(1) <= buf(2);
+				buf_next(2) <= buf(3);
+				buf_next(3) <= buf(4);
+				buf_next(4) <= buf(5);
+				buf_next(5) <= buf(6);
+				if counter >= 0 and counter < NNN then
+					buf_next(6) <= data;
+				elsif counter >= NNN and counter < (NNN + 3) then
+					buf_next(6) <= "10000000";
+					counter_next <= counter + 1;
+				end if;
+				
+				if counter = 4 then
+					--Type doesn't match
+					max_value_reg <= buf_next(3);
+					max_index_reg <= 0;
+					--Initialise result buffer and max_value;
+					result_next(0) <= buf_next(0);
+					result_next(1) <= buf_next(1);
+					result_next(2) <= buf_next(2);
+					result_next(3) <= buf_next(3);
+					result_next(4) <= buf_next(4);
+					result_next(5) <= buf_next(5);
+					result_next(6) <= buf_next(6);
+
+				elsif counter > 4 then
+					if max_value < unsigned(buf_next(3)) then
+						max_value_reg <= buf_next(3);
+						max_index_reg <= counter - 4;
+
+						result_next(0) <= buf_next(0);
+						result_next(1) <= buf_next(1);
+						result_next(2) <= buf_next(2);
+						result_next(3) <= buf_next(3);
+						result_next(4) <= buf_next(4);
+						result_next(5) <= buf_next(5);
+						result_next(6) <= buf_next(6);
+					end if;
+				end if;
+					
+			when response =>
+				dataReady <= '1';
+				if counter_next >= (NNN + 3) then
+					seqDone <= '1';
+					
+				end if;
+		end case;
+	end process;
+		
+	clock:
+	process(clk)
+	begin
+		if rising_edge(clk) then
+			if reset = '1' then
+				--Initialise
+			else
+				--If reset is considered...
+				ctrl2_delayed <= ctrl2;
+				counter <= counter_next;
+				finished <= finished_reg;
+				NNN <= NNN_reg;
+				
+				if current_state = idle and start = '1' then
+					--?
+					ctrl1 <= not ctrl1;
+				end if;
+			end if;
+			
+		end if;
+	end process;
+end architecture;
+
+
+/*
+Log:
+
+Firstly drafted on 24/02/2026
+Commit:
+	Please take actions on:
+	1. Reset manipulations...
+	2. Data type of maxIndex, maxValue and their corresponding registered signal.
+		Whether binary vector or integer?
+		How will it be compared with number from buffer?
+	3. Integer -> BCD while send the result and data back, ranging from index, byte and result...
+	4. How to initialise memory grid to be 0, 0, ....
+	5. Check sensitivity list, from datapath to state-transition logic.
+	6. Assign in advance at each process to avoid latch inferrence, including the memory grid.
+	7. Don't forget to update every registered signal at clock rising_edge.
+	8. Naming suffix: REG or NEXT?
+	8. How to toggle ctrl1 signal? (current one doesn't work because...)
+	9. Check boundary conditions...
+	10. Avoid multiple drive.
+
+Next modified on...
+*/

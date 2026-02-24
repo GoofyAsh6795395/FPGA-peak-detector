@@ -36,10 +36,10 @@ begin
 		wait for 5 ns;
 
 		clk_tb <= '0';
-		d_tb <= '1';
 		wait for 5 ns;
 
 		clk_tb <= '1';
+		d_tb <= '1';
 		wait for 5 ns;
 
 		clk_tb <= '0';

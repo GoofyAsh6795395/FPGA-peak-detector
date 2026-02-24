@@ -1,0 +1,17 @@
+{C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Data_Processor/data_processor.vhd} {0 {vcom -work work -2002 -explicit -vopt -stats=none {C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Data_Processor/data_processor.vhd}
+Questa Intel Starter FPGA Edition-64 vcom 2024.3 Compiler 2024.09 Sep 10 2024
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Compiling entity data_processor
+-- Compiling architecture synth of data_processor
+** Error: C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Data_Processor/data_processor.vhd(134): Cannot resolve indexed name (type ieee.std_logic_1164.STD_LOGIC_VECTOR) as type std.STANDARD.INTEGER.
+** Error: C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Data_Processor/data_processor.vhd(147): Cannot resolve indexed name (type ieee.std_logic_1164.STD_LOGIC_VECTOR) as type std.STANDARD.INTEGER.
+** Error: C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Data_Processor/data_processor.vhd(184): Cannot read output "ctrl1".
+	VHDL 2008 allows reading outputs.
+	This facility is enabled by compiling with -2008.
+** Error (suppressible): C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Data_Processor/data_processor.vhd(102): (vcom-1339) Case statement choices cover only 3 out of 4 cases.
+** Note: C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Data_Processor/data_processor.vhd(190): VHDL Compiler exiting
+
+} {9.0 12.0} {}}
