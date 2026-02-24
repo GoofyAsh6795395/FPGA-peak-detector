@@ -43,9 +43,9 @@ begin
 			case current_state is
 			when idle =>
 				if command = ascii_l or command = ascii_l_cap
-					then next_state <= idle;
+					then next_state <= L;
 				elsif command = ascii_p or command = ascii_p_cap
-					then next_state <= idle;
+					then next_state <= P;
 				elsif command = ascii_a_cap or command = ascii_a
 					then next_state <= A;
 				else
@@ -53,9 +53,9 @@ begin
 				end if;
 			when A =>
 				if command = ascii_l or command = ascii_l_cap
-					then next_state <= idle;
+					then next_state <= L;
 				elsif command = ascii_p or command = ascii_p_cap
-					then next_state <= idle;
+					then next_state <= P;
 				elsif command = ascii_a_cap or command = ascii_a
 					then next_state <= A;
 				elsif command >= ascii_0 and command <= ascii_9
@@ -65,9 +65,9 @@ begin
 				end if;
 			when AN =>
 				if command = ascii_l or command = ascii_l_cap
-					then next_state <= idle;
+					then next_state <= L;
 				elsif command = ascii_p or command = ascii_p_cap
-					then next_state <= idle;
+					then next_state <= P;
 				elsif command = ascii_a_cap or command = ascii_a 
 					then next_state <= A;
 				elsif command >= ascii_0 and command <= ascii_9
@@ -77,13 +77,13 @@ begin
 				end if;
 			when ANN =>
 				if command = ascii_l or command = ascii_l_cap
-					then next_state <= idle;
+					then next_state <= L;
 				elsif command = ascii_p or command = ascii_p_cap
-					then next_state <= idle;
+					then next_state <= P;
 				elsif command = ascii_a_cap or command = ascii_a
 					then next_state <= A;
 				elsif command >= ascii_0 and command <= ascii_9
-					then next_state <= idle;
+					then next_state <= ANNN;
 				else
 					next_state <= idle;
 				end if;
@@ -99,14 +99,35 @@ begin
 					next_state <= idle;
 				end if;
 
+//
+			when L =>
+				if command = ascii_l or command = ascii_l_cap
+					then next_state <= L;
+				elsif command = ascii_p or command = ascii_p_cap
+					then next_state <= P;
+				elsif command = ascii_a_cap or command = ascii_a
+					then next_state <= A;
+				else
+					next_state <= idle;
+				end if;
+
+//
+			when P =>
+				if command = ascii_l or command = ascii_l_cap
+					then next_state <= L;
+				elsif command = ascii_p or command = ascii_p_cap
+					then next_state <= P;
+				elsif command = ascii_a_cap or command = ascii_a
+					then next_state <= A;
+				else
+					next_state <= idle;
+				end if;
 			when others =>
 				next_state <= idle;
 			end case;
 		end if;
 	end process;
 
-	--Use registed style output to ensure the success signal "isANNN", "isL" and "isP" are strictly one clock cycle.
-	--Also, to avoid gliches.
 	update:
 	process(clk)
 	begin
@@ -120,7 +141,7 @@ begin
 	end process;
 	
 	output_logic:
-	process(current_state, enable, command)
+	process(current_state, enable)
 	begin
 		if enable = '0' then
 			isANNN <= '0';
