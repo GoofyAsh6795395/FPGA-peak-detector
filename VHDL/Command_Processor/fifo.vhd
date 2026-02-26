@@ -74,3 +74,11 @@ begin
 		end if;
 	end process;
 end architecture;
+
+--Log:
+--
+--Firstly drafted on 23/02/2026
+--
+--Commitment:
+--	Succeed compiling, but untested.
+--End commitment;
