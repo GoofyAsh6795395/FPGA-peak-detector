@@ -100,6 +100,8 @@ begin
 		max_index_reg <= max_index;
 		
 		case current_state is
+			--Explicitly indicating the behaviour under other state is also required.
+			--To satisfy the syntax check, use "null";
 			when idle =>
 				if start = '1' then
 					if finished = '1' then
@@ -190,31 +192,35 @@ begin
 end architecture;
 
 
-/*
-Log:
-
-Firstly drafted on 24/02/2026
-Commit:
-	Please take actions on:
-	1. Reset manipulations...
-	2. Data type of maxIndex, maxValue and their corresponding registered signal.
-			Whether binary vector or integer?
-			How will it be compared with number from buffer?
-	3. Integer -> BCD while send the result and data back, ranging from index, byte and result...
-	4. How to initialise memory grid to be 0, 0, ....
-	5. Check sensitivity list, from datapath to state-transition logic.
-	6. Assign in advance at each process to avoid latch inferrence, including the memory grid.
-	7. Don't forget to update every registered signal at clock rising_edge.
-	8. Naming suffix: REG or NEXT?
-	9. How to toggle ctrl1 signal? (current one doesn't work because...)
-	10. Check boundary conditions...
-	11. Avoid multiple drive.
-	12. Take care of combinational loop...
-	
-	Other suggestions beyond code:
-	1. A corresponding ASM chart maybe required.
-		Try Microsoft Visio.
-	2. Try HLS(High Level Synthesis)!
-
-Next modified on...
+--
+--Log:
+--
+--Firstly drafted on 24/02/2026
+--Commitment:
+--	Please take actions on:
+--	1. Reset manipulations...
+--	2. Data type of maxIndex, maxValue and their corresponding registered signal.
+--			Whether binary vector or integer?
+--			How will it be compared with number from buffer?
+--	3. Integer -> BCD while send the result and data back, ranging from index, byte and result...
+--	4. How to initialise memory grid to be 0, 0, ....
+--	5. Check sensitivity list, from datapath to state-transition logic.
+--	6. Assign in advance at each process to avoid latch inferrence, including the memory grid.
+--	7. Don't forget to update every registered signal at clock rising_edge.
+--	8. Naming suffix: REG or NEXT?
+--	9. How to toggle ctrl1 signal? (current one doesn't work because...)
+--	10. Check boundary conditions...
+--	11. Avoid multiple drive.
+--	12. Take care of combinational loop...
+--	
+--	Other suggestions beyond code:
+--	1. A corresponding ASM chart maybe required.
+--		Try Microsoft Visio.
+--	2. Try HLS(High Level Synthesis)! to have a double check.
+--End commitment;
+--
+--Modified on 26/02/2026
+--Commitment:
+--	Correct the commit style to satisfy IDE requirement.
+--End commitment;
 */

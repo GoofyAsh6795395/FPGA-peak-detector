@@ -138,16 +138,16 @@ begin
 	end process;
 end architecture;
 
-/*
-Firstly drafted on a certain day in early Feburary.
-
-Updated on 26/02/2026:
-Commitment:
-	Change style from Moore one to Mealy one.
-	At this stage, the function works as expected.
-	However, there are gliches among outputs, can be later solved by:
-		1. Clocked Mealy FSM output to stablise output every clocking posedge
-		2. A fully guaranteed up-stream input.
-	Currently, not sure if the first solution and enable signal couple well or not.
-	Also, a limited coverage is conducted, enable signal is not considered.
-*/
+--Log:
+--Firstly drafted on a certain day in early Feburary.
+--
+--Updated on 26/02/2026:
+--Commitment:
+--	Change style from Moore one to Mealy one.
+--	At this stage, the function works as expected.
+--	However, there are gliches among outputs, can be later solved by:
+--		1. Clocked Mealy FSM output to stablise output every clocking posedge
+--		2. A fully guaranteed up-stream input.
+--	Currently, not sure if the first solution and enable signal couple well or not.
+--	Also, a limited coverage is conducted, enable signal is not considered.
+--End;
