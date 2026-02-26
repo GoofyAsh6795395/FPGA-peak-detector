@@ -79,6 +79,9 @@ end architecture;
 --
 --Firstly drafted on 23/02/2026
 --
---Commitment:
+--Commitment on 11am, 26/02/2026:
 --	Succeed compiling, but untested.
---End commitment;
+--
+--Commitment on 3pm, 26/02/2026
+--	Halfly tested, work in order.
+--

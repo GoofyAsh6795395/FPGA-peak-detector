@@ -22,13 +22,12 @@ entity rx_control is
 end entity;
 
 architecture synth of rx_control is
-	type stateType is (idle, enqueue, ack);
+	type stateType is (idle, processing);
 	signal current_state, next_state: stateType := idle;
 begin
 	--There is always a signal on the output port.
-	--The down-stream FIFO use the enqueue_request to determine whether the output is valid or not.
+	--The down-stream FIFO use the enqueue_request to determine whether the output data is valid or not.
 	data_out <= data_in;
-
 
 	state_transition_logic:
 	process(current_state, valid, oe, fe)
@@ -36,17 +35,12 @@ begin
 		next_state <= current_state;
 		case current_state is
 			when idle =>	
-				if oe = '1' or fe = '1' then
-					--Pull up the "done" signal to avoid stalling when of/fe are detected
-					next_state <= ack;
-				elsif valid = '1' then
-					next_state <= enqueue;
+				if valid = '1' then
+					next_state <= processing;
 				else
 					next_state <= idle;
 				end if;
-			when enqueue =>
-				next_state <= ack;
-			when ack =>
+			when processing =>
 				next_state <= idle;
 			when others =>
 				next_state <= idle;
@@ -59,11 +53,19 @@ begin
 		--To avoid latch inferrence
 		enqueue_req <= '0';
 		done <= '0';
-
 		case current_state is
-			when enqueue =>
+			when idle =>
+				done <= '0';
+				enqueue_req <= '0';
+				if oe = '1' or fe = '1' then
+					--Pull up the "done" signal to avoid stalling when of/fe are detected
+					--Because oe/fe last for one cycle, done signal will also be kept for same interval.
+					done <= '1';
+				else
+					done <= '0';
+				end if;
+			when processing =>
 				enqueue_req <= '1';
-			when ack =>
 				done <= '1';
 			when others => null;
 		end case;
@@ -83,7 +85,21 @@ begin
 end architecture;
 
 --Log:
+--
 --Firstly drafted on 26/02/2026
---Commitment:
+--
+--Commitment on 1pm, 26/02/2026:
 --	Succeed compiling, but untested.
---End;
+--
+--Commitment on 4pm, 26/02/2026
+--	Work in order, but too slow, too redundant
+--	The simplification of FSM as well as single cycle pulse method are desired.
+--
+--Commitment on 4.30pm, 26/02/2026
+--	Work in order except one circumstance where data changes while valid keeps high.
+--	If needed, input should be registered to stablise the output.
+--
+--Commitment on 4.35pm, 26/02/2026
+--	After a deep consideration, it should be ok.
+
+

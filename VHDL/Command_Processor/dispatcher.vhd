@@ -26,7 +26,7 @@ entity dispatcher is
 		--Request is a voltage level signal instead of single cycle pulse.
 		--Last for 2 clock cycles at minimum.
 		echo_req: out STD_LOGIC;
-		echo_acknowledged: in STD_LOGIC;
+		echo_acknowledged: in STD_LOGIC
 
 	);
 end entity;
@@ -34,14 +34,35 @@ end entity;
 architecture synth of dispatcher is
 	type stateType is (idle, dequeue, dispatch, waitting);
 	signal current_state, next_state: stateType := idle;
-	signal data_reg: STD_LOGIC_VECTOR(7 downto 0);
 begin
-	--data_out <= data_in;
+	--No use of extra register for input data here anymore.
+	--To avoid one extra clock cycle latency, now is one cycle, from request to valid & dispatch.
+	data_out <= data_in;
 
 	state_transition_logic:
-	process(current_state, isEmpty, echo_acknowledged,)
+	process(current_state, isEmpty, echo_acknowledged)
 	begin
-		
+		next_state <= current_state;
+		case current_state is
+			when idle =>
+				if isEmpty /= '1' then
+					next_state <= dequeue;
+				else
+					next_state <= idle;
+				end if;
+			when dequeue =>
+				next_state <= dispatch;
+			when dispatch =>
+				next_state <= waitting;
+			when waitting =>
+				if echo_acknowledged = '1' then
+					next_state <= idle;
+				else
+					next_state <= waitting;
+				end if;
+			when others =>
+				next_state <= current_state;
+		end case;
 	end process;
 
 	datapath:
@@ -53,20 +74,39 @@ begin
 		parser_en <= '0';
 		dequeue_req <= '0';
 
-		case
-			
+		case current_state is
+			when idle =>
+				echo_req <= '0';
+			when dequeue =>
+				dequeue_req <= '1';
+			when dispatch =>
+				--Keep requesting echo level high, until it's acknowledged
+				echo_req <= '1';
+				parser_en <= '1';
+				dequeue_req <= '0';
+			when waitting =>
+				echo_req <= '1';
+				parser_en <= '0';
+				
 		end case;
 	end process;
 
 	clocked_control:
-	process(current_state)
+	process(clk, reset)
 	begin
 		if rising_edge(clk) then
-			if reset = '1' then
-				
+			if reset /= '1' then
+				current_state <= idle;
 			else
-				
+				current_state <= next_state;
 			end if;
 		end if;
 	end process;
 end architecture;
+
+--Log:
+--Firstly drafted on 26/02/2026
+--
+--Commitment on 12pm, 26/02/2026:
+--	Succeed compiled, but untested.
+--
