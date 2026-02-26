@@ -16,6 +16,14 @@ Questa Intel Starter FPGA Edition-64 vcom 2024.3 Compiler 2024.09 Sep 10 2024
 -- Compiling entity scheduler
 -- Compiling architecture synth of scheduler
 
+} {} {}} {C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Command_Processor/parser_testbench.vhd} {1 {vcom -work work -2002 -explicit -vopt -stats=none {C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Command_Processor/parser_testbench.vhd}
+Questa Intel Starter FPGA Edition-64 vcom 2024.3 Compiler 2024.09 Sep 10 2024
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Compiling entity parser_tb
+-- Compiling architecture sim of parser_tb
+
 } {} {}} {C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Command_Processor/tx_control.vhd} {0 {vcom -work work -2002 -explicit -vopt -stats=none {C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Command_Processor/tx_control.vhd}
 Questa Intel Starter FPGA Edition-64 vcom 2024.3 Compiler 2024.09 Sep 10 2024
 -- Loading package STANDARD
@@ -25,14 +33,4 @@ Questa Intel Starter FPGA Edition-64 vcom 2024.3 Compiler 2024.09 Sep 10 2024
 ** Error: C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Command_Processor/tx_control.vhd(8): near ")": (vcom-1576) expecting IDENTIFIER.
 ** Note: C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Command_Processor/tx_control.vhd(8): VHDL Compiler exiting
 
-} {7.0 8.0} {}} {C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Command_Processor/parser_testbench.vhd} {0 {vcom -work work -2002 -explicit -vopt -stats=none {C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Command_Processor/parser_testbench.vhd}
-Questa Intel Starter FPGA Edition-64 vcom 2024.3 Compiler 2024.09 Sep 10 2024
--- Loading package STANDARD
--- Loading package TEXTIO
--- Loading package std_logic_1164
--- Compiling entity parser_tb
--- Compiling architecture sim of parser_tb
-** Error: C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Command_Processor/parser_testbench.vhd(35): Signal "isANNN_tb" is type ieee.std_logic_1164.STD_LOGIC; expecting type ieee.std_logic_1164.STD_LOGIC_VECTOR.
-** Note: C:/Users/Xinrui Zhu/iCloudDrive/Documents/Projects/Courseworks/Engineering_Practice/Group_Project/VHDL/Command_Processor/parser_testbench.vhd(183): VHDL Compiler exiting
-
-} {8.0 9.0} {}}
+} {7.0 8.0} {}}
