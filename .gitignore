@@ -13,3 +13,17 @@
 # Xcode user-specific state (do not commit)
 **/xcuserdata/
 **/*.xcuserstate
+
+#Altera Quartus Prime generated
+work/
+**/work/
+transcript
+vsim.wlf
+*.wlf
+wlf*
+*.log
+*.bak
+*.mti
+*.mpf
+*.dbg
+*.db
