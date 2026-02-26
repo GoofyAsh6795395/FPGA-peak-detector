@@ -72,7 +72,7 @@ begin
         wait for 10 ns;
         
         clk_tb <= '1';
-	command_tb <= ascii_a ;
+	command_tb <= ascii_0;
         wait for 10 ns;
         
         clk_tb <= '0';

@@ -32,10 +32,10 @@ architecture synth of parser is
 	constant ascii_0: STD_LOGIC_VECTOR (7 downto 0) := x"30";
 	constant ascii_9: STD_LOGIC_VECTOR (7 downto 0) := x"39";
 
-	signal ANNN_found, L_found, P_found: STD_LOGIC := '0';
-	signal ANNN_next, L_next, P_next: STD_LOGIC := '0';
+	--signal ANNN_found, L_found, P_found: STD_LOGIC := '0';
+	--signal ANNN_next, L_next, P_next: STD_LOGIC := '0';
 begin
-	next_state_logic:
+	state_transition_logic:
 	process(enable, command, current_state)
 	begin
 		next_state <= current_state;
@@ -87,17 +87,6 @@ begin
 				else
 					next_state <= idle;
 				end if;
-//
-			when ANNN =>
-				if command = ascii_l or command = ascii_l_cap
-					then next_state <= L;
-				elsif command = ascii_p or command = ascii_p_cap
-					then next_state <= P;
-				elsif command = ascii_a_cap or command = ascii_a
-					then next_state <= A;
-				else
-					next_state <= idle;
-				end if;
 
 			when others =>
 				next_state <= idle;
@@ -122,41 +111,43 @@ begin
 	output_logic:
 	process(current_state, enable, command)
 	begin
-		if enable = '0' then
-			isANNN <= '0';
-			isL <= '0';
-			isP <= '0';
-		else
-			case current_state is
-			when idle =>
-				isANNN <= '0';
-				isL <= '0';
-				isP <= '0';
-			when A =>
-				isANNN <= '0';
-				isL <= '0';
-				isP <= '0';
-			when AN =>
-				isANNN <= '0';
-				isL <= '0';
-				isP <= '0';
-			when ANN =>
-				isANNN <= '0';
-				isL <= '0';
-				isP <= '0';
-			when ANNN =>
-				isANNN <= '1';
-				isL <= '0';
-				isP <= '0';
-			when L =>
+		--Assign first, to avoid latch.
+		isANNN <= '0';
+		isL <= '0';
+		isP <= '0';
+		
+		if enable = '1' then
+			if command = ascii_l or command = ascii_l_cap then
 				isANNN <= '0';
 				isL <= '1';
 				isP <= '0';
-			when P =>
+			elsif command = ascii_p or command = ascii_p_cap then
 				isANNN <= '0';
 				isL <= '0';
 				isP <= '1';
-			end case;
+			end if;
+			
+			if current_state = ANN then
+				if command >= ascii_0 and command <= ascii_9 then
+					isANNN <= '1';
+					isL <= '0';
+					isP <= '0';
+				end if;
+			end if;
 		end if;
 	end process;
 end architecture;
+
+/*
+Firstly drafted on a certain day in early Feburary.
+
+Updated on 26/02/2026:
+Commitment:
+	Change style from Moore one to Mealy one.
+	At this stage, the function works as expected.
+	However, there are gliches among outputs, can be later solved by:
+		1. Clocked Mealy FSM output to stablise output every clocking posedge
+		2. A fully guaranteed up-stream input.
+	Currently, not sure if the first solution and enable signal couple well or not.
+	Also, a limited coverage is conducted, enable signal is not considered.
+*/
