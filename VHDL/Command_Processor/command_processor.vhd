@@ -12,9 +12,9 @@ entity command_processor is
 		
 		--To Data Processor
 		start: in STD_ULOGIC;
-		numWords: in STD_ULOGIC (11 downto 0);
+		numWords: in STD_ULOGIC_VECTOR (11 downto 0);
 		dataReady: out STD_ULOGIC;
-		byte: out STD_ULOGIC (7 downto 0);
+		byte: out STD_ULOGIC_VECTOR (7 downto 0);
 		maxIndex: out STD_ULOGIC_VECTOR (11 downto 0);
 		dataResults: out STD_ULOGIC_VECTOR (55 downto 0);
 		seqDone: out STD_ULOGIC;
@@ -25,11 +25,11 @@ entity command_processor is
 		txDone: in STD_ULOGIC;
 		
 		clk: in STD_ULOGIC;
-		reset: in STD_ULOGIC;
+		reset: in STD_ULOGIC
 	);
 end entity;
 
-architecture command_processor is
+architecture synth of command_processor is
 
 begin
 

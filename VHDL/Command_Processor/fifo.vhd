@@ -16,7 +16,7 @@ end entity;
 architecture algorithm of fifo is
 	--Declare the fifo type and instantiate it. 
 	type memory_type is  array (0 to 7) of STD_LOGIC_VECTOR (7 downto 0);
-	signal queue: memory_type := (others => (others => '0'));
+	signal queue: memory_type := (others => (others => '0'));	--Aggregate style assignment
 
 	--Register the write pointer, read pointer, counter.
 	signal head, tail: integer range 0 to 7 := 0;
@@ -79,9 +79,9 @@ end architecture;
 --
 --Firstly drafted on 23/02/2026
 --
---Commitment on 11am, 26/02/2026:
+--Commitment at 11am, 26/02/2026:
 --	Succeed compiling, but untested.
 --
---Commitment on 3pm, 26/02/2026
+--Commitment at 3pm, 26/02/2026
 --	Halfly tested, work in order.
 --
