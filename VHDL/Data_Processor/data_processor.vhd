@@ -212,6 +212,7 @@ end architecture;
 --	10. Check boundary conditions...
 --	11. Avoid multiple drive.
 --	12. Take care of combinational loop...
+--	13. Priority: Byte signal is not assigned.
 --	
 --	Other suggestions beyond code:
 --	1. A corresponding ASM chart maybe required.
