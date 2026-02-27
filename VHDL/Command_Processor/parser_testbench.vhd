@@ -37,9 +37,6 @@ begin
 	begin
 	enable_tb <= '1';
 
-
-
-
 	clk_tb <= '1';
 	command_tb <= ascii_l;
         wait for 10 ns;

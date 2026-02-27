@@ -26,7 +26,7 @@ entity dispatcher is
 		--Request is a voltage level signal instead of single cycle pulse.
 		--Last for 2 clock cycles at minimum.
 		echo_req: out STD_LOGIC;
-		echo_acknowledged: in STD_LOGIC
+		echo_ack: in STD_LOGIC
 
 	);
 end entity;
@@ -35,12 +35,12 @@ architecture synth of dispatcher is
 	type stateType is (idle, dequeue, dispatch, waitting);
 	signal current_state, next_state: stateType := idle;
 begin
-	--No use of extra register for input data here anymore.
+	--No use of extra register to store input data anymore.
 	--To avoid one extra clock cycle latency, now is one cycle, from request to valid & dispatch.
 	data_out <= data_in;
 
 	state_transition_logic:
-	process(current_state, isEmpty, echo_acknowledged)
+	process(current_state, isEmpty, echo_ack)
 	begin
 		next_state <= current_state;
 		case current_state is
@@ -55,7 +55,7 @@ begin
 			when dispatch =>
 				next_state <= waitting;
 			when waitting =>
-				if echo_acknowledged = '1' then
+				if echo_ack = '1' then
 					next_state <= idle;
 				else
 					next_state <= waitting;
@@ -107,6 +107,6 @@ end architecture;
 --Log:
 --Firstly drafted on 26/02/2026
 --
---Commitment on 12pm, 26/02/2026:
+--Commitment at 12pm, 26/02/2026:
 --	Succeed compiled, but untested.
 --

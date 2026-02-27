@@ -1,7 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 
-entity rx_control is
+entity rx_handshaker is
 	port(
 		clk: in STD_LOGIC;
 		reset: in STD_LOGIC;
@@ -21,7 +21,7 @@ entity rx_control is
 	);
 end entity;
 
-architecture synth of rx_control is
+architecture synth of rx_handshaker is
 	type stateType is (idle, processing);
 	signal current_state, next_state: stateType := idle;
 begin
@@ -88,18 +88,20 @@ end architecture;
 --
 --Firstly drafted on 26/02/2026
 --
---Commitment on 1pm, 26/02/2026:
+--Commitment at 1pm, 26/02/2026:
 --	Succeed compiling, but untested.
 --
---Commitment on 4pm, 26/02/2026
+--Commitment at 4pm, 26/02/2026
 --	Work in order, but too slow, too redundant
 --	The simplification of FSM as well as single cycle pulse method are desired.
 --
---Commitment on 4.30pm, 26/02/2026
+--Commitment at 4.30pm, 26/02/2026
 --	Work in order except one circumstance where data changes while valid keeps high.
 --	If needed, input should be registered to stablise the output.
 --
---Commitment on 4.35pm, 26/02/2026
+--Commitment at 4.35pm, 26/02/2026
 --	After a deep consideration, it should be ok.
-
-
+--
+--Commitment at 12pm, 27/02/2026
+--	Rename the entity and file name, also in testbench
+--	Reconstruct the work directory
