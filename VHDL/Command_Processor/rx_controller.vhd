@@ -1,3 +1,6 @@
+--It's a wrapper file, aiming to synthesis the small submodules together.
+--Therefore, the usage of external ports should be via this entity instead of the inside one.
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 
@@ -84,38 +87,38 @@ architecture comb of rx_controller is
 	signal handshaker_fifo_bus: STD_LOGIC_VECTOR(7 downto 0);
 	signal fifo_dispatcher_bus: STD_LOGIC_VECTOR(7 downto 0);
 begin
-	rx_handshaker port map (
-		clk => clk;
-		reset => reset;
-		oe => oe;
-		fe => fe;
-		valid => valid;
-		done => done;
-		data_in => data;
-		enqueue_req => enqueue_sig;
-		data_out: handshaker_fifo_bus;
+	connectA: rx_handshaker port map (
+		clk => clk,
+		reset => reset,
+		oe => oe,
+		fe => fe,
+		valid => valid,
+		done => done,
+		data_in => data,
+		enqueue_req => enqueue_sig,
+		data_out => handshaker_fifo_bus
 	);
 
-	fifo port map(
-		reset => reset;
-		clk => clk;
-		enqueue => enqueue_sig;
-		dequeue => dequeue_sig;
-		isEmpty => isEmpty_sig;
-		data_in => handshaker_fifo_bus;
-		data_out => fifo_dispatcher_bus;
+	connectB: fifo port map(
+		reset => reset,
+		clk => clk,
+		enqueue => enqueue_sig,
+		dequeue => dequeue_sig,
+		isEmpty => isEmpty_sig,
+		data_in => handshaker_fifo_bus,
+		data_out => fifo_dispatcher_bus
 	);
 
-	dispatcher port map(
-		clk => clk;
-		reset => reset;
-		isEmpty => isEmpty_sig;
-		dequeue_req => dequeue_sig;
-		data_in => fifo_dispatcher_bus;
-		parser_en => parser_en;
-		data_out => data_out;
-		echo_req => echo_req;
-		echo_ack: echo_ack;
+	connectC: dispatcher port map(
+		clk => clk,
+		reset => reset,
+		isEmpty => isEmpty_sig,
+		dequeue_req => dequeue_sig,
+		data_in => fifo_dispatcher_bus,
+		parser_en => parser_en,
+		data_out => data_out,
+		echo_req => echo_req,
+		echo_ack => echo_ack
 	);
 end architecture;
 
