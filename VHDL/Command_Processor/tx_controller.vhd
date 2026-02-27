@@ -60,6 +60,7 @@ begin
 	datapath:
 	process(current_state, echo_req, print_req)
 	begin
+		--Single cycle pulses.
 		echo_ack <= '0';
 		print_ack <= '0';
 		txNow <= '0';
