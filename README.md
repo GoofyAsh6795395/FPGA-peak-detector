@@ -20,11 +20,13 @@ Therefore, I have written some C files with a similar function to
   B, prepare to make a comparison in our VHDL code and the generated one, at leisure.
 
 The tool-chain required ranges from Altera Quaratus Prime to Xilinx Vivado, of course, community free version, so you can carry out some trials easily.
-The description above is so brief that it's worthwhile referring to the official website of this unit for more details,
+The description above is so brief that it's worthwhile referring to the official website of this unit for more details:
+
 Online guidance: https://seis.bristol.ac.uk/~sy13201/digital_design/ECAD/A2_index.htm 
 Unit info: https://www.bris.ac.uk/unit-programme-catalogue/UnitDetails.jsa?ayrCode=25%2F26&unitCode=EEME20002
+Beyond these, there is another separated Assessment Detail.pdf also attached.
 
-Announcements:
+Other statements:
 
 Please feel free to clone this repo for any purpose, it's Github instead of Google Scholar, you don't need to pay for anything.
 In the end, thanks to my group members, I cannot have such a archivevement without them.
