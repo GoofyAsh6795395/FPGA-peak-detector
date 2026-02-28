@@ -11,7 +11,7 @@ In general, the desired function on FPGA is to find the peak value from the gene
 A bottom-up approach is utilised in this programme:
   Start from breaking the target into small tasks.
   Then draft their corresponding FSM, ASM chart on paper.
-  Implement of them in VHDL firstly, then put them together.
+  Implement them in VHDL firstly, then put them together.
   After carefully tested in simulation, synthesis it on FPGA.
 
 Also, some bad habits like HLS(high level synthesis) from C code, is not prohibited.
