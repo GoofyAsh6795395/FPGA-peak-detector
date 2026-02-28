@@ -212,7 +212,7 @@ end architecture;
 --	10. Check boundary conditions...
 --	11. Avoid multiple drive.
 --	12. Take care of combinational loop...
---	13. Priority: Byte signal is not assigned.
+--	13. Priority: Byte signal is not used at all.
 --	
 --	Other suggestions beyond code:
 --	1. A corresponding ASM chart maybe required.
@@ -223,5 +223,8 @@ end architecture;
 --Modified on 26/02/2026
 --Commitment:
 --	Correct the commit style to satisfy IDE requirement.
---End commitment;
-*/
+--
+--Reminder on 28/02/2026:
+--	Take care of the variables, they may also cause latch inferrence if assigned not properly.
+--	Please use a better naming logic instead of taking time on distinguishing their suffix.
+--
