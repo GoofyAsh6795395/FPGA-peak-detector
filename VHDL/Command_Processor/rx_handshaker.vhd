@@ -48,7 +48,7 @@ begin
 	end process;
 	
 	output_logic:
-	process(current_state)
+	process(current_state, oe, fe)
 	begin
 		--To avoid latch inferrence
 		enqueue_req <= '0';
@@ -105,3 +105,7 @@ end architecture;
 --Commitment at 12pm, 27/02/2026
 --	Rename the entity and file name, also in testbench
 --	Reconstruct the work directory
+--
+--Commitment at 22pm, 01/03/2026
+--  Based on vivado's suggestion, correct the sensitivity list.
+--
