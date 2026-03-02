@@ -126,6 +126,7 @@ architecture synth of command_processor is
 	signal rx_out_bus: STD_LOGIC_VECTOR(7 downto 0);
 	signal parser_scheduler_bus: STD_LOGIC_VECTOR(11 downto 0);
 	signal scheduler_tx_bus: STD_LOGIC_VECTOR(7 downto 0);
+	signal rx_tx_bus: STD_LOGIC_VECTOR(7 downto 0);
 	signal isANNN, isP, isL: STD_LOGIC;
 	signal print_req, print_ack: STD_LOGIC;
 begin
@@ -219,5 +220,3 @@ end architecture;
 --Commitment:
 --	Not important, leave for last minute to double check.
 --
---Modified on 01/03/2026
---  Based on Vivado, the unused internal signal is deleted.

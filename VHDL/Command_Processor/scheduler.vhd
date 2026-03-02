@@ -16,7 +16,6 @@ entity scheduler is
 
 		--To transmitter side.
 		data_out: out STD_LOGIC_VECTOR(7 downto 0);	--8 bit sequence, ASCII encoded.
-			--Now it's a voltage level signal, no idea if the possible glich matters or not, 01/03/2026.
 		print_req: out STD_LOGIC;
 		print_ack: in STD_LOGIC;			--Single cycle pulse.
 
@@ -28,7 +27,6 @@ entity scheduler is
 
 		numWords: out STD_LOGIC_VECTOR(11 downto 0);
 		byte: in STD_LOGIC_VECTOR(7 downto 0);		--8 bit binary sequence
-
 		dataResults: in STD_LOGIC_VECTOR(55 downto 0);
 		maxIndex: in STD_LOGIC_VECTOR(11 downto 0)
 	);
@@ -38,41 +36,18 @@ architecture synth of scheduler is
 	type stateType is (idle, run, printData, printL, printP);
 	signal current_state, next_state: stateType := idle;
 	signal NNN_reg: integer := 0;
-		--Hold the received NNN from parser.
-		--This is a integer instead of vector, 
-		--Managed in clock process with conditon that state is idle and isANNN is received.
-
-	--The subsequent counters denotes the accumulated times for print to be finished.
-	--Clearly check if there is off-by-one is important.
-	signal counterL: integer range 0 to 20 := 0;
-	signal counterP: integer range 0 to 6 := 0;
-	signal counterData: integer range 0 to 3 := 0;
-		--Literally, count the time of print
-		--Automatically reset to 0 once a print task is totally finished, by mod operation.
-		--The range is explicitly given to avoid the waste of resources and optimise fan in/ out.
-		--Updated in clocked process, and used in state-transition logic & datapath logic
-			--To determine both next state and respective output.
-
-	signal printing: STD_LOGIC := '0';		
-		--Maintained in clock process but used in datapath to determine the request signal.
-		--If high, means that the request is already sent, reset to 0 until print_ack is captured.
-		--Consider the last time of printing, if print_ack is receviced:
-			--The printing signal is updated to 0 at next posedge clk.
-			--The state transition happens in parllel
-			--So no need to worry about if it will be pull up again by accident.
-			--Also, the request signal should not be triggered.
-
-	signal data, data_next: STD_LOGIC_VECTOR(7 downto 0);		
-		--It's binary sequence, same with byte, maintained in datapath process.
-
-	signal finished: STD_LOGIC := '0';				
-		--An indicator of seqDone, updated in clock process.
+	--This subsequent counters denotes the accumulated times for print to be finished.
+	signal counterL, counterP, counterData: integer := 0;
+	signal printing: STD_LOGIC := '0';
+	signal data, data_next: STD_LOGIC_VECTOR(7 downto 0);		--It's binary sequence, same with byte.
+	signal finished: STD_LOGIC := '0';
 begin
 	--What's managed here?
 	state_transition_logic:
 	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, print_ack)
 	begin
 		next_state <= current_state;
+
 		case current_state is
 			when idle => 
 				--Assume the upstream isANNN, isL, isP is one hot.
@@ -92,7 +67,7 @@ begin
 			when printData =>
 				--Start state transiton if counter condition is met.
 				if counterData = 2 and print_ack = '1' then
-					--This means that two data have already been sent previously, and the latest one just be sent.
+					--This means that two data have already been sent previously, and the latest just be sent.
 					if finished = '0' then
 						next_state <= run;
 					elsif isP = '1' then
@@ -141,8 +116,6 @@ begin
 		msb := 0;
 		lsb_ascii := 0;
 		msb_ascii := 0;
-		upper := 0;
-		lower := 0;
 		
 		--Single pulse:
 		start <= '0';
@@ -173,9 +146,9 @@ begin
 					lsb := to_integer(unsigned(data(3 downto 0)));
 					
 					if msb <= 9 then
-						msb_ascii := msb + 48;			--48 = 48 - 0 = 49 - 1 = ...
-					else						--It's a capital letter.
-						msb_ascii := msb + 55;			--55 = 65 - 10 = 66 - 11 = ...
+						msb_ascii := msb + 48;
+					else						--It's a letter.
+						msb_ascii := msb + 55;
 					end if;
 
 					if lsb <= 9 then
@@ -298,9 +271,7 @@ begin
 				numWords <= (others => '0');
 				printing <= '0';
 				data <= (others => '0');
-				current_state <= idle;
 			else
-			    current_state <= next_state;
 				data <= data_next;
 				if seqDone = '1' then
 					finished <= '1';
@@ -399,22 +370,7 @@ end architecture;
 --	The total counter is abandoned, now use a strcky flag "finished" to hold seqDone signal.
 --	Correcting the sensitivity list now.
 --
---Commitment at 11.45pm, 27/02/2026:
---	Compile succesfully.
+--Commitment at 11.45pm, 27/02/2026
+--	Compile succesfully
 --	Quite a lot functions integrated, test it later.
 --	Git submitted.
---
---Commitment at 3pm, 01/03/2026:
---	Try to identify the problems manually.
---		Found that latches may inferred for some variables, corrected.
---	Internal signals are checked ok.
---	More commitments are respectively added around signal definations, can be easily found in Git Blame.
---
---Reminder at 9pm, 01/03/2026:
---	DataResults, maxIndex signals, I'm not sure if they should be immediately registered or not in somewhere once we got seqDone.
---	Check upstream data processor, if not, they mustn't clear it.
---
---Modified at 11pm, 01/03/2026:
---  Identified from Vivado that the start signal is always ground.
---  Found that the current_state is forgetten to assign in clock process
---  Corrected.
