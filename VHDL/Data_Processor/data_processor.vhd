@@ -306,4 +306,5 @@ end architecture;
 --  Line 174, should use signal "finished_reg" instead of "finished" here.
 --  To optimise:
 --      indicate the range of every integer to save resources and improve possible delay.
+--      Code can be simplified to enhance the readability.
 
