@@ -58,7 +58,7 @@ begin
 	dataResults(15 downto 8) <= result(5);
 	dataResults(7 downto 0) <= result(6);
 
-	BCD_convert:
+	integer_to_BCD:
 	process(max_index)
 	variable hundreds, tens, ones: integer := 0;
 	--Used to convert the integer of max index to BCD.
@@ -72,7 +72,7 @@ begin
 	end process;
 
 	state_transition_logic:
-	process(current_state, start, counter, ctrl2_delayed, ctrl2)
+	process(current_state, start, counter, ctrl2_delayed, ctrl2, NNN)
 	begin
 		next_state <= current_state;
 		case current_state is
@@ -102,7 +102,7 @@ begin
 
 	--In datapath process, the counter_next, buf_next, result_next, max_reg, finished_reg 
 	datapath:
-	process(current_state, NNN, counter, finished, max, max_index, buf, result, data, numWords)
+	process(current_state, NNN, counter, finished, max, max_index, buf, result, data, numWords, start, buf_next, max_reg)
 	variable ones, tens, hundreds: integer := 0;
 		--Used to slice the input BCD numwords.
 	begin
@@ -120,7 +120,7 @@ begin
 		buf_next <= buf;
 		result_next <= result;
 		
-		--For single cycle pulse.
+		--For single cycle pulse, namely, pull down if a certain condition is not met.
 		dataReady <= '0';
 		seqDone <= '0';
 		
@@ -170,7 +170,7 @@ begin
 				end if;
 
 				if counter = (NNN + 3) then
-					--Finished both processing NNN data and padding extra 3.
+					--Finished both processing NNN generated data and padding extra 3 ones.
 					finished_reg <= '1';
 				end if;
 				
@@ -190,8 +190,8 @@ begin
 					result_next(6) <= buf_next(6);
 
 				elsif counter > 4 then
-					if max_reg < signed(buf_next(3)) then
-						--Max value updated.
+					if max < signed(buf_next(3)) then
+						--Max value and index should be updated.
 						max_reg <= to_integer(signed(buf_next(3)));
 						max_index_reg <= counter - 4;
 
@@ -206,7 +206,8 @@ begin
 				end if;
 					
 			when response =>
-				if counter >= 4 then 
+				if counter >= 4 then
+				--It means that waht's currently on the port "byte" is the actual generated value.
 					dataReady <= '1';
 				end if;
 				if finished = '1' then
@@ -226,11 +227,10 @@ begin
 				counter <= 0;
 				ctrl2_delayed <= '0';
 				
-				dataResults <= (others => '0');
 				max_index <= 0;
 				max <= 0;
-				result <= (others => (others => '0'));
 				buf <= (others => (others => '0'));
+				result <= (others => (others => '0'));
 				current_state <= idle;
 				--Initialise
 			else
@@ -242,6 +242,7 @@ begin
 				counter <= counter_next;
 				finished <= finished_reg;
 				NNN <= NNN_reg;
+				result <= result_next;
 				current_state <= next_state;
 				
 				if current_state = idle and start = '1' then
@@ -258,7 +259,7 @@ end architecture;
 --
 --Log:
 --
---Firstly drafted on 24/02/2026
+--Firstly drafted on 24/02/2026:
 --Commitment:
 --	Please take actions on:
 --	1. Reset manipulations...
@@ -283,7 +284,7 @@ end architecture;
 --	2. Try HLS(High Level Synthesis)! to have a double check.
 --End commitment;
 --
---Modified on 26/02/2026
+--Modified on 26/02/2026:
 --Commitment:
 --	Correct the commit style to satisfy IDE requirement.
 --
@@ -299,12 +300,49 @@ end architecture;
 --	Conditionally send dataReady.
 --	Byte is now connected.
 --
---Problems identified at 2pm, 03/03/2026
+--Problems identified at 2pm, 03/03/2026:
 --	The buffer is forgetten to not update, already correct.
 --	Rename: max_index, max_value, max_value_reg.
 --  State transition is forgetten in clocked process, corrected.
 --  Line 174, should use signal "finished_reg" instead of "finished" here.
 --  To optimise:
---      indicate the range of every integer to save resources and improve possible delay.
+--      Indicate the range of every integer to save resources and improve possible delay.
 --      Code can be simplified to enhance the readability.
-
+--      The integer-BCD conversion can be more elegant by shift operatior.
+--   
+--Modified at 6pm, 03/03/2026:
+--  The name of entity and ports, their respective dataType is required changing to match the testbench's.
+--  
+--Suggestions at 7pm, 03/03/2026:
+--  The finished signal should be totally moved in the clock process
+--      A. It's used only twice and doesn't rely on a complicated condition.
+--      B. To decrease the number of internal signals is to decrease complexity.
+--  Similar reason and action is suggested taking on the signal "counter"
+--  The maxIndex name should be changed to avoid the conflict between internal signals and output port.
+--
+--Modified at 8pm, 03/03/2026:
+--  Multiple-drive problem of ports is solved.
+--      Reported by Vivado.
+--  The result is forgetten updating in clocking process, corrected.
+--      Spotted in Vivado Messages: drive by constant 0.
+--
+--Thoughts at 10pm, 03/03/2026:
+--  To optimise timing & delay
+--      1. Expand the if-elsif chain to avoid cascaded LUT.
+--          Lots of time the we don't need priority information.
+--      2. Decrease fan in/out to make the equivalent capacitor smaller
+--          Thus, the slew rate is increased.
+--          Especially the integer type, indicate it's range.
+--      3. The arithmetic operations, decrease the bitwidth
+--          To avoid carry-ripple-adder as I remember?
+--
+--Modified at 3pm, 04/03/2026:
+--  Corrected the timing-loop of combinational logic of max.
+--  Notified by Vivado.
+--
+--Suggestions at 23pm, 04/03/2026:
+--  To correct the port type and their name.
+--  To indicate the integer range
+--  To simplify the if-elsif logic
+--  To simplify the vector-assignment logic
+--  Awaiting finishing in next group work session expected on 10th, March.
