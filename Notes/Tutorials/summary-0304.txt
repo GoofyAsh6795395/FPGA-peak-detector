@@ -1,0 +1,21 @@
+ASM should be finished as soon as possible.
+
+Correct code based on Vivado's msg
+	Port, especially it's type
+
+Commit style
+How to use vivado?
+	Language Template
+	Timing report
+	Methodology
+	Messages
+	Clock and pin configuration
+	Schematic, 
+	Report utilisation
+
+Static Timing Analysis
+
+Optimise delay:
+	See log.
+
+Additional Pipelining.
