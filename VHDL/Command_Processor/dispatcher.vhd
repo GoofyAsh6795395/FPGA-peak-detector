@@ -95,7 +95,7 @@ begin
 	process(clk, reset)
 	begin
 		if rising_edge(clk) then
-			if reset /= '1' then
+			if reset = '1' then
 				current_state <= idle;
 			else
 				current_state <= next_state;
@@ -110,3 +110,6 @@ end architecture;
 --Commitment at 12pm, 26/02/2026:
 --	Succeed compiled, but untested.
 --
+--Modified on 05/03/2026:
+--	Corrected the reset logic.
+--	Tested, but not coverged, works in order.
