@@ -27,7 +27,7 @@ begin
 	isEmpty <= '1' when counter = 0 else '0';	--Use stablised counter signal, or there may be gliches and functional errors.
 
 	counter_update:
-	process(dequeue, enqueue)
+	process(dequeue, enqueue, counter)
 	begin
 		--To avoid latch inferrence.
 		counter_next <= counter;
@@ -85,3 +85,5 @@ end architecture;
 --Commitment at 3pm, 26/02/2026
 --	Halfly tested, work in order.
 --
+--Updated on 11am, 05/05/2026
+--  Modified the sensitivity list on line 29, based on Vivado's suggestion.
