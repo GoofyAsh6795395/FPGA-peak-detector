@@ -37,7 +37,8 @@ end entity;
 architecture synth of scheduler is
 	type stateType is (idle, run, printData, printL, printP);
 	signal current_state, next_state: stateType := idle;
-	signal NNN_reg: integer := 0;
+	signal NNN_reg: STD_LOGIC_VECTOR(11 downto 0) := (others => '0');
+	signal NNN_int: integer := 0;
 		--Hold the received NNN from parser.
 		--This is a integer instead of vector, 
 		--Managed in clock process with conditon that state is idle and isANNN is received.
@@ -68,9 +69,10 @@ architecture synth of scheduler is
 	signal finished: STD_LOGIC := '0';				
 		--An indicator of seqDone, updated in clock process.
 begin
+    numWords <= NNN_reg;
 	--What's managed here?
 	state_transition_logic:
-	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, print_ack)
+	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, print_ack, dataReady)
 	begin
 		next_state <= current_state;
 		case current_state is
@@ -125,7 +127,7 @@ begin
 	--Similar with the process(all) syntax in VHDL-2008, here, I'll manually list all of them to avoid errors.
 	--Same happens below.
 	datapath:
-	process(current_state, dataReady, printing, data, byte, counterL, counterP, counterData)
+	process(current_state, dataReady, printing, data, byte, counterL, counterP, counterData, dataResults, maxIndex)
 		variable lsb, msb: integer := 0;
 		variable lsb_ascii, msb_ascii: integer := 0;	--Defined as integer, converted to vector when output.
 		
@@ -288,14 +290,18 @@ begin
 	process(clk, reset, isANNN, seqDone, printing, print_ack, finished)
 		variable hundreds, tens, ones: integer := 0;
 	begin
+	    hundreds := 0;
+	    tens := 0;
+	    ones := 0;         --To avoid latch inference
+	
 		if rising_edge(clk) then
 			if reset = '1' then
 				finished <= '0';
 				counterL <= 0;
 				counterP <= 0;
 				counterData <= 0;
-				NNN_reg <= 0;
-				numWords <= (others => '0');
+				NNN_int <= 0;
+				NNN_reg <= (others => '0');
 				printing <= '0';
 				data <= (others => '0');
 				current_state <= idle;
@@ -318,16 +324,15 @@ begin
 							--It's a good idea to keep its natural semantics.
 							--So pull down if next ANNN cycle starts.
 							finished <= '0';
-
-							--Output is here.
-							numWords <= NNN;
+                            NNN_reg <= NNN;
+                            --Capture the NNN into a register to avoid it changing later.
 
 							--Convert BCD to integer, then hold this value to control iteration times.
 							hundreds := to_integer(unsigned(NNN(11 downto 8)));
-							tens := to_integer(unsigned(NNN(11 downto 8)));
-							ones := to_integer(unsigned(NNN(11 downto 8)));
+							tens := to_integer(unsigned(NNN(7 downto 4)));
+							ones := to_integer(unsigned(NNN(3 downto 0)));
 					
-							NNN_reg <= hundreds * 100 + tens * 10 + ones;
+							NNN_int <= hundreds * 100 + tens * 10 + ones;
 						end if;
 						
 					when printData =>
@@ -415,6 +420,24 @@ end architecture;
 --	Check upstream data processor, if not, they mustn't clear it.
 --
 --Modified at 11pm, 01/03/2026:
---  Identified from Vivado that the start signal is always ground.
---  Found that the current_state is forgetten to assign in clock process
---  Corrected.
+--	Identified from Vivado that the start signal is always ground.
+--	Found that the current_state is forgetten to assign in clock process
+--	Corrected.
+--
+--Modified at 11am, 05/03/2026:
+--	Adjusted the sensitivity list on line 72 & 127, based on Vivado's suggestion.
+--	Renamed signal "NNN_reg" to "NNN_int"
+--	Changed the output logic of numWords
+--
+--Modified at 12am, 05/03/2026:
+--	Use another registered signal NNN_reg to capture NNN conditionally.
+--
+--Modified at 1pm, 05/03/2026:
+--	NNN integer and the logic related to should be removed, like BCD slicing, no need to store.
+--	However, at this stage, for the purpose of tracking what's happening inside to debug and maintain, leave it.
+--	It will not shown in schematics since it doesn't used in any internal assignment or comparison.
+--
+--Commitment at 5pm, 05/03/2026:
+--	Function of P print is tested working in order.
+--		However, the behaviour of down-stream cannot be fully simulated by testbench.
+--		Thus, this point worth double checking if there is something wrong when simulating everything together.
