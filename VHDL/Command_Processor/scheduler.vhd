@@ -69,8 +69,8 @@ architecture synth of scheduler is
 	signal finished: STD_LOGIC := '0';				
 		--An indicator of seqDone, updated in clock process.
 begin
-    numWords <= NNN_reg;
-	--What's managed here?
+	numWords <= NNN_reg;
+
 	state_transition_logic:
 	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, print_ack, dataReady)
 	begin
@@ -95,6 +95,7 @@ begin
 				--Start state transiton if counter condition is met.
 				if counterData = 2 and print_ack = '1' then
 					--This means that two data have already been sent previously, and the latest one just be sent.
+					--So state can be updated to next one now.
 					if finished = '0' then
 						next_state <= run;
 					elsif isP = '1' then
@@ -282,7 +283,6 @@ begin
 				else
 					print_req <= '0';
 				end if;
-			when others =>
 		end case;
 	end process;
 
@@ -290,9 +290,9 @@ begin
 	process(clk, reset, isANNN, seqDone, printing, print_ack, finished)
 		variable hundreds, tens, ones: integer := 0;
 	begin
-	    hundreds := 0;
-	    tens := 0;
-	    ones := 0;         --To avoid latch inference
+		hundreds := 0;
+		tens := 0;
+		ones := 0;         --To avoid latch inference
 	
 		if rising_edge(clk) then
 			if reset = '1' then
@@ -306,7 +306,7 @@ begin
 				data <= (others => '0');
 				current_state <= idle;
 			else
-			    current_state <= next_state;
+				current_state <= next_state;
 				data <= data_next;
 				if seqDone = '1' then
 					finished <= '1';
@@ -323,9 +323,11 @@ begin
 							--Finished signal does not used anymore after running state
 							--It's a good idea to keep its natural semantics.
 							--So pull down if next ANNN cycle starts.
+							--Also, because while NNN data is not finished, it will not turn to idle state
+							--So no need to worry if this clean operation will interrupt NNN iterations.
 							finished <= '0';
-                            NNN_reg <= NNN;
-                            --Capture the NNN into a register to avoid it changing later.
+							NNN_reg <= NNN;
+							--Capture the NNN into a register to avoid it changing later.
 
 							--Convert BCD to integer, then hold this value to control iteration times.
 							hundreds := to_integer(unsigned(NNN(11 downto 8)));
@@ -441,3 +443,11 @@ end architecture;
 --	Function of P print is tested working in order.
 --		However, the behaviour of down-stream cannot be fully simulated by testbench.
 --		Thus, this point worth double checking if there is something wrong when simulating everything together.
+--
+--Spotted at 11pm, 05/03/2026:
+--	It seems to be better to define the internal indicator "printing" as a volatge-level instead of resigering it.
+--		Now, the impact is, the start-up printing after state transition is stalling for 1 more cycle.
+--			Which means that totally two clock cycles are used for print to start up.
+--		However, I'll choose to leave it here, at this stage because:
+--			A. Not a function disaster and the impact is limited.
+--			B. A serious change in whole structure is required rewriting if the "printing" logic gets different.
