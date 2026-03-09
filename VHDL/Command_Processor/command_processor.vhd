@@ -2,7 +2,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 
-entity cmdProc is
+entity cmdProc_internal is
 	port(
 		--To Rx.
 		rxData: in STD_LOGIC_VECTOR (7 downto 0);
@@ -13,10 +13,10 @@ entity cmdProc is
 		
 		--To Data Processor
 		start: out STD_LOGIC;
-		numWords_bcd: out BCD_ARRAY_TYPE(2 downto 0);
+		numWords_bcd: out STD_LOGIC_VECTOR(11 downto 0);
 		dataReady: in STD_LOGIC;
 		byte: in STD_LOGIC_VECTOR (7 downto 0);
-		maxIndex: in STD_LOGIC_VECTOR (11 downto 0);
+		maxIndex: in STD_LOGIC_VECTOR(11 downto 0);
 		dataResults: in STD_LOGIC_VECTOR (55 downto 0);
 		seqDone: in STD_LOGIC;
 
@@ -30,7 +30,7 @@ entity cmdProc is
 	);
 end entity;
 
-architecture synth of cmdProc is
+architecture synth of cmdProc_internal is
 	component rx_controller is
 		port(
 			--Control.
@@ -222,6 +222,8 @@ end architecture;
 --Modified on 01/03/2026:
 --	Based on Vivado, the unused internal signal is deleted.
 --
---Modified on 08/03/2026:
+--Modified at 10am, 08/03/2026:
 --	Rename the whole entity and some ports to map the provided files.
---	
+--
+--Idea at 11am, 08/03/2026:
+--	A wrapper file can be used to implement type conversion, thus I don't need to change any of my internal logic.
