@@ -451,3 +451,10 @@ end architecture;
 --		However, I'll choose to leave it here, at this stage because:
 --			A. Not a function disaster and the impact is limited.
 --			B. A serious change in whole structure is required rewriting if the "printing" logic gets different.
+--
+--Suggestions on 09/03/2026:
+--	I have no idea if the start signal should be registered or not.
+--	It depends on if it will cause a combinational loop with downstream machine.
+--	Check the "dataReady" signal of downstream later to evaluate this risk.
+--	I have tracked the "start" signal and found the "dataReady" does not directly rely on it.
+--		It directly depends on state register and counter logic.
