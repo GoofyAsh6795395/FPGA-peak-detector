@@ -32,7 +32,7 @@ entity dispatcher is
 end entity;
 
 architecture synth of dispatcher is
-	type stateType is (idle, dequeue, dispatch, waitting);
+	type stateType is (idle, dispatch, waitting);
 	signal current_state, next_state: stateType := idle;
 begin
 	--No use of extra register to store input data anymore.
@@ -46,12 +46,10 @@ begin
 		case current_state is
 			when idle =>
 				if isEmpty /= '1' then
-					next_state <= dequeue;
+					next_state <= dispatch;
 				else
 					next_state <= idle;
 				end if;
-			when dequeue =>
-				next_state <= dispatch;
 			when dispatch =>
 				next_state <= waitting;
 			when waitting =>
@@ -61,33 +59,35 @@ begin
 					next_state <= waitting;
 				end if;
 			when others =>
-				next_state <= current_state;
+				next_state <= idle;
 		end case;
 	end process;
 
 	datapath:
-	process(current_state)
+	process(current_state, echo_ack)
 	begin
 		--To avoid latch inferrence.
-		--To maintain some single pulse cycle outputs.
 		echo_req <= '0';
+			--It's a voltage level signal.
+
+		--To maintain some single pulse cycle outputs.
 		parser_en <= '0';
 		dequeue_req <= '0';
 
 		case current_state is
-			when idle =>
-				echo_req <= '0';
-			when dequeue =>
-				dequeue_req <= '1';
 			when dispatch =>
 				--Keep requesting echo level high, until it's acknowledged
 				echo_req <= '1';
 				parser_en <= '1';
-				dequeue_req <= '0';
 			when waitting =>
-				echo_req <= '1';
-				parser_en <= '0';
-				
+				if echo_ack = '1' then
+					dequeue_req <= '1';
+				else
+					echo_req <= '1';
+					--Keep high, until acknowledged signal is captured.
+				end if;
+			when others =>
+				null;
 		end case;
 	end process;
 
@@ -113,3 +113,9 @@ end architecture;
 --Modified on 05/03/2026:
 --	Corrected the reset logic.
 --	Tested, but not coverged, works in order.
+--
+--Modified on 09/03/2026:
+--	Change the whole state transition logic.
+--	Identified the problem of "echo_req", which is a voltage level signal instead of single cycle pulse.
+--	!Following the logic of fifo, disptach first and dequeue later.
+--		Because the signal on fifo_dispatcher_bus hints the data already available to dispatch.
