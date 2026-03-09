@@ -102,7 +102,7 @@ begin
 
 	--Use registed style output to ensure the success signal "isANNN", "isL" and "isP" are strictly one clock cycle.
 	--Also, to avoid gliches.
-	update:
+	datapath:
 	process(clk, reset)
 	begin
 		if rising_edge(clk) then
