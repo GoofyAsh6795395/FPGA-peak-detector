@@ -61,42 +61,34 @@ begin
 	process(current_state, echo_req, print_req)
 	begin
 		--Single cycle pulses.
-		echo_ack <= '0';
-		print_ack <= '0';
 		txnow <= '0';
-		case current_state is
-			when ack =>
-				if echo_req = '1' then
-					echo_ack <= '1';
-				elsif print_req = '1' then
-					print_ack <= '1';
-				end if;
-			when transmitting =>
-				txnow <= '1';
-			when others =>
-				null;
-		end case;
+		if current_state = transmitting then
+			txnow <= '1';
+		end if;
 	end process;
 
 	control:
-	process(clk, reset, echo_req, print_req, data_echo, data_print)
+	process(clk, reset, echo_req, print_req, data_echo, data_print, current_state)
 	begin
 		if rising_edge(clk) then
 			if reset = '1' then
 				current_state <= idle;
 				--Try aggregate style assignment
 				data_reg <= (others => '0');
-			else
+				echo_ack <= '0';
+				print_ack <= '0';
+			else				
 				current_state <= next_state;
-				
 				--Instead of level-sensitive datapath process, the assignment of data register should be put in clocked process
 				--Then, it will be a resettable DFF with an enable signal.
 				if current_state = ack then
 					--Use if, elsif statement to maintain the priority of echo operation.
 					--In hardware level, I deduce it should be a cascaded mux logic to implement such a function(Not cure)
 					if echo_req = '1' then
+						echo_ack <= '1';
 						data_reg <= data_echo;
 					elsif print_req = '1' then
+						print_ack <= '1';
 						data_reg <= data_print;
 					end if;
 				end if;
@@ -116,8 +108,14 @@ end architecture;
 --Commitment at 11am, 27/02/2026:
 --	Succeed compiling, but not tested.
 --
---Modification on 08/03/2026:
+--Modified on 08/03/2026:
 --	Rename some ports to match the testbench and assignment requirements.
 --
---Modification on 09/03/2026:
+--Modified at 12pm, 09/03/2026:
 --	Corrected the sensitivity list, added all RHS and conditions used.
+--
+--Modified at 6pm, 09/03/2026:
+--	The handshaking timing-loop is identified and corrected.
+--	To reach this, the signal of "print_ack" and "echo_ack" are designed to be the output of respective registers.
+--	Therefore, the acknowledged signal will not immediately released and the downstream combinational logic will run in order.
+--	
