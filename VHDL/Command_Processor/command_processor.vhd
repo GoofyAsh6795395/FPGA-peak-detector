@@ -7,7 +7,7 @@ entity cmdProc_internal is
 		--To Rx.
 		rxData: in STD_LOGIC_VECTOR (7 downto 0);
 		rxnow: in STD_LOGIC;
-		done: out STD_LOGIC;
+		rxdone: out STD_LOGIC;
 		ovErr: in STD_LOGIC;
 		framErr: in STD_LOGIC;
 		
@@ -30,98 +30,7 @@ entity cmdProc_internal is
 	);
 end entity;
 
-architecture synth of cmdProc_internal is
-	component rx_controller is
-		port(
-			--Control.
-			clk: in STD_LOGIC;
-			reset: in STD_LOGIC;
-
-			--To Rx.
-			valid: in STD_LOGIC;
-			done: out STD_LOGIC;
-			data: in STD_LOGIC_VECTOR(7 downto 0);
-			oe: in STD_LOGIC;
-			fe: in STD_LOGIC;
-
-			--To Tx. side
-			echo_req: out STD_LOGIC;
-			echo_ack: in STD_LOGIC;
-		
-			--To parser
-			parser_en: out STD_LOGIC;
-
-			--An unified output bus
-			data_out: out STD_LOGIC_VECTOR(7 downto 0)
-		);
-	end component;
-
-	component parser is
-		port(
-			clk: in STD_LOGIC;
-			reset: in STD_LOGIC;
-			command: in STD_LOGIC_VECTOR (7 downto 0);
-			enable: in STD_LOGIC;
-
-			NNN: out STD_LOGIC_VECTOR(11 downto 0);		--BCD encoding is used.
-
-			isANNN: out STD_LOGIC;
-			isL: out STD_LOGIC;
-			isP: out STD_LOGIC
-		);
-	end component;
-
-	component scheduler is
-		port(
-			--External control:
-			clk: in STD_LOGIC;
-			reset: in STD_LOGIC;
-		
-			--To parser.
-			isANNN: in STD_LOGIC;
-			isL: in STD_LOGIC;
-			isP: in STD_LOGIC;
-			NNN: in STD_LOGIC_VECTOR(11 downto 0);		--12 bit BCD.
-
-			--To transmitter side.
-			data_out: out STD_LOGIC_VECTOR(7 downto 0);	--8 bit sequence, ASCII encoded.
-			print_req: out STD_LOGIC;
-			print_ack: in STD_LOGIC;			--Single cycle pulse.
-
-			--To data processor
-
-			start: out STD_LOGIC;
-			dataReady: in STD_LOGIC;
-			seqDone: in STD_LOGIC;
-
-			numWords: out STD_LOGIC_VECTOR(11 downto 0);
-			byte: in STD_LOGIC_VECTOR(7 downto 0);		--8 bit binary sequence
-			dataResults: in STD_LOGIC_VECTOR(55 downto 0);
-			maxIndex: in STD_LOGIC_VECTOR(11 downto 0)
-		);
-	end component;
-	
-	component tx_controller is
-		port(
-			clk: in STD_LOGIC;
-			reset: in STD_LOGIC;
-
-			--To receiver side
-			echo_req: in STD_LOGIC;
-			echo_ack: out STD_LOGIC;
-			data_echo: in STD_LOGIC_VECTOR(7 downto 0);
-
-			--To scheduler.
-			print_req: in STD_LOGIC;
-			print_ack: out STD_LOGIC;
-			data_print: in STD_LOGIC_VECTOR(7 downto 0);
-
-			--To transmitter.
-			txnow: out STD_LOGIC;
-			txdone: in STD_LOGIC;
-			data_out: out STD_LOGIC_VECTOR(7 downto 0)
-		);
-	end component;
+architecture comb of cmdProc_internal is
 	signal echo_req, echo_ack, parser_en: STD_LOGIC;
 	signal rx_out_bus: STD_LOGIC_VECTOR(7 downto 0);
 	signal parser_scheduler_bus: STD_LOGIC_VECTOR(11 downto 0);
@@ -129,14 +38,14 @@ architecture synth of cmdProc_internal is
 	signal isANNN, isP, isL: STD_LOGIC;
 	signal print_req, print_ack: STD_LOGIC;
 begin
-	connectA: rx_controller port map (
+	rx_controller_connect: entity work.rx_controller(comb) port map (
 			--Control.
 			clk => clk,
 			reset => reset,
 
 			--To Rx.
 			valid => rxnow,
-			done => done,
+			done => rxdone,
 			data => rxData,
 			oe => ovErr,
 			fe => framErr,
@@ -152,7 +61,7 @@ begin
 			data_out => rx_out_bus
 	);
 
-	connectB: parser port map(
+	parser_connect: entity work.parser(synth) port map(
 			clk => clk,
 			reset => reset,
 			command => rx_out_bus,
@@ -165,7 +74,7 @@ begin
 			isP => isP
 	);
 
-	connectC: scheduler port map(
+	scheduler_connect: entity work.scheduler(synth) port map(
 			--External control:
 			clk => clk,
 			reset => reset,
@@ -193,7 +102,7 @@ begin
 			maxIndex => maxIndex
 	);
 
-	connectD: tx_controller port map(
+	tx_controller_connect: entity work.tx_controller(synth) port map(
 			clk => clk,
 			reset => reset,
 
@@ -225,5 +134,8 @@ end architecture;
 --Modified at 10am, 08/03/2026:
 --	Rename the whole entity and some ports to map the provided files.
 --
---Idea at 11am, 08/03/2026:
+--Ideas at 11am, 08/03/2026:
 --	A wrapper file can be used to implement type conversion, thus I don't need to change any of my internal logic.
+--
+--Commitment at 11am, 09/03/2026:
+--	Changed the port map style.

@@ -30,64 +30,11 @@ entity rx_controller is
 end entity;
 
 architecture comb of rx_controller is
-	component dispatcher is
-		port(
-			--Control.
-			clk: in STD_LOGIC;
-			reset: in STD_LOGIC;
-	
-			--To FIFO.
-			isEmpty: in STD_LOGIC;
-			dequeue_req: out STD_LOGIC;
-			data_in: in STD_LOGIC_VECTOR(7 downto 0);
-
-			--To parser.
-			parser_en: out STD_LOGIC;
-
-			--An unified output channel of data
-			data_out: out STD_LOGIC_VECTOR(7 downto 0);
-
-			--To transmitter side.
-			echo_req: out STD_LOGIC;
-			echo_ack: in STD_LOGIC
-		);
-	end component;
-
-	component fifo is
-		port(
-			reset: in STD_LOGIC;
-			clk: in STD_LOGIC;
-			enqueue: in STD_LOGIC;
-			dequeue: in STD_LOGIC;
-			isEmpty: out STD_LOGIC;
-			data_in: in STD_LOGIC_VECTOR (7 downto 0);
-			data_out: out STD_LOGIC_VECTOR (7 downto 0)
-		);
-	end component;
-
-	component rx_handshaker is
-		port(
-			clk: in STD_LOGIC;
-			reset: in STD_LOGIC;
-		
-			--To receiver.
-			oe: in STD_LOGIC;
-			fe: in STD_LOGIC;
-
-			valid: in STD_LOGIC;
-			done: out STD_LOGIC;
-			data_in: in STD_LOGIC_VECTOR(7 downto 0);
-
-			--To FIFO.
-			enqueue_req: out STD_LOGIC;
-			data_out: out STD_LOGIC_VECTOR(7 downto 0)
-		);
-	end component;
 	signal enqueue_sig, dequeue_sig, isEmpty_sig: STD_LOGIC;
 	signal handshaker_fifo_bus: STD_LOGIC_VECTOR(7 downto 0);
 	signal fifo_dispatcher_bus: STD_LOGIC_VECTOR(7 downto 0);
 begin
-	connectA: rx_handshaker port map (
+	handshaker_connect: entity work.rx_handshaker(synth) port map (
 		clk => clk,
 		reset => reset,
 		oe => oe,
@@ -99,7 +46,7 @@ begin
 		data_out => handshaker_fifo_bus
 	);
 
-	connectB: fifo port map(
+	fifo_connect: entity work.fifo(algorithm) port map(
 		reset => reset,
 		clk => clk,
 		enqueue => enqueue_sig,
@@ -109,7 +56,7 @@ begin
 		data_out => fifo_dispatcher_bus
 	);
 
-	connectC: dispatcher port map(
+	dispatcher_connect: entity work.dispatcher(synth) port map(
 		clk => clk,
 		reset => reset,
 		isEmpty => isEmpty_sig,
@@ -128,3 +75,5 @@ end architecture;
 --	Finished connecting.
 --	Not carefully checked at this stage.
 --
+--Commitment at 11am, 09/03/2026:
+--	Changed the port map style.

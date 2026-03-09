@@ -25,40 +25,11 @@ entity cmdProc is
 end entity;
 
 architecture comb of cmdProc is
-	component cmdProc_internal is
-		rxData: in STD_LOGIC_VECTOR (7 downto 0);
-		rxnow: in STD_LOGIC;
-		done: out STD_LOGIC;
-		ovErr: in STD_LOGIC;
-		framErr: in STD_LOGIC;
-		
-		--To Data Processor
-		start: out STD_LOGIC;
-		numWords_bcd: out STD_LOGIC_VECTOR(11 downto 0);
-		dataReady: in STD_LOGIC;
-		byte: in STD_LOGIC_VECTOR (7 downto 0);
-		maxIndex: in STD_LOGIC_VECTOR(11 downto 0);
-		dataResults: in STD_LOGIC_VECTOR (55 downto 0);
-		seqDone: in STD_LOGIC;
-
-		--To Tx.
-		txData: out STD_LOGIC_VECTOR(7 downto 0);
-		txnow: out STD_LOGIC;
-		txdone: in STD_LOGIC;
-		
-		clk: in STD_LOGIC;
-		reset: in STD_LOGIC
-	end component;
-	
 	signal numWords_packed: STD_LOGIC_VECTOR(11 downto 0);
 	signal maxIndex_packed: STD_LOGIC_VECTOR(11 downto 0);
 	signal dataResults_packed: STD_LOGIC_VECTOR(55 downto 0);
 
 begin
-	numWords_packed(3 downto 0) <= numWords_bcd(0);
-	numWords_packed(7 downto 4) <= numWords_bcd(1);
-	numWords_packed(11 downto 8) <= numWords_bcd(2);
-
 	maxIndex_packed(3 downto 0) <= maxIndex(0);
 	maxIndex_packed(7 downto 4) <= maxIndex(1);
 	maxIndex_packed(11 downto 8) <= maxIndex(2);
@@ -71,10 +42,10 @@ begin
 	dataResults_packed(15 downto 8) <= dataResults(5);
 	dataResults_packed(7 downto 0) <= dataResults(6);
 
-	wrap_up: cmdProc_internal port map(
-		rxData: rxData,
+	wrap_up: entity work.cmdProc_internal(comb) port map(
+		rxData => rxData,
 		rxnow => rxnow,
-		done => done,
+		rxdone => rxdone,
 		ovErr => ovErr,
 		framErr => framErr,
 
@@ -93,6 +64,11 @@ begin
 		clk => clk,
 		reset => reset
 	);
+
+	numWords_bcd(0) <= numWords_packed(3 downto 0);
+	numWords_bcd(1) <= numWords_packed(7 downto 4);
+	numWords_bcd(2) <= numWords_packed(11 downto 8);
+
 end architecture;
 
 --Log
