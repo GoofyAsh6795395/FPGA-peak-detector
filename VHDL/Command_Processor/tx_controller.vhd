@@ -17,8 +17,8 @@ entity tx_controller is
 		data_print: in STD_LOGIC_VECTOR(7 downto 0);
 
 		--To transmitter.
-		txNow: out STD_LOGIC;
-		txDone: in STD_LOGIC;
+		txnow: out STD_LOGIC;
+		txdone: in STD_LOGIC;
 		data_out: out STD_LOGIC_VECTOR(7 downto 0)
 	);
 end entity;
@@ -32,7 +32,7 @@ begin
 	data_out <= data_reg;
 
 	state_transition_logic:
-	process(current_state, echo_req, print_req, txDone)
+	process(current_state, echo_req, print_req, txdone)
 	begin
 		next_state <= current_state;
 		case current_state is
@@ -47,7 +47,7 @@ begin
 			when transmitting =>
 				next_state <= waitting;
 			when waitting =>
-				if txDone = '1' then
+				if txdone = '1' then
 					next_state <= idle;
 				else
 					next_state <= waitting;
@@ -63,7 +63,7 @@ begin
 		--Single cycle pulses.
 		echo_ack <= '0';
 		print_ack <= '0';
-		txNow <= '0';
+		txnow <= '0';
 		case current_state is
 			when ack =>
 				if echo_req = '1' then
@@ -72,14 +72,14 @@ begin
 					print_ack <= '1';
 				end if;
 			when transmitting =>
-				txNow <= '1';
+				txnow <= '1';
 			when others =>
 				null;
 		end case;
 	end process;
 
 	control:
-	process(clk, reset)
+	process(clk, reset, echo_req, print_req, data_echo, data_print)
 	begin
 		if rising_edge(clk) then
 			if reset = '1' then
@@ -110,9 +110,14 @@ end architecture;
 --
 --Firstly drafted on 26/02/2026.
 --
---Commitment at 5pm, 26/02/2026
+--Commitment at 5pm, 26/02/2026:
 --	Not finished.
 --
---Commitment at 11am, 27/02/2026
+--Commitment at 11am, 27/02/2026:
 --	Succeed compiling, but not tested.
 --
+--Modification on 08/03/2026:
+--	Rename some ports to match the testbench and assignment requirements.
+--
+--Modification on 09/03/2026:
+--	Corrected the sensitivity list, added all RHS and conditions used.
