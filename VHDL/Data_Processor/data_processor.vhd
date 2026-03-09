@@ -225,7 +225,7 @@ begin
 				finished <= '0';
 				counter <= 0;
 				ctrl2_delayed <= '0';
-				ctrl1_reg <- '0';
+				ctrl1_reg <= '0';
 				
 				max_index <= 0;
 				max <= 0;
@@ -391,3 +391,7 @@ end architecture;
 --	Consider the assignments in processing state.
 --	Seems that there is a servere combinational dependent logic and it exactly forms the critical path.
 --	In other words, cascaded, and i don't find its necessity.
+--
+--Reminders on 08/03/2026:
+--	It's not wise an idea to directly drive a certain output port by combinational logic for the reason of stability.
+--	Thus, we use result array grid and now easy to change the port name.
