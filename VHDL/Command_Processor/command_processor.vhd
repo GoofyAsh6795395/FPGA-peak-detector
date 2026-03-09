@@ -2,18 +2,18 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 
-entity command_processor is
+entity cmdProc is
 	port(
 		--To Rx.
-		data_in: in STD_LOGIC_VECTOR (7 downto 0);
-		valid: in STD_LOGIC;
+		rxData: in STD_LOGIC_VECTOR (7 downto 0);
+		rxnow: in STD_LOGIC;
 		done: out STD_LOGIC;
-		oe: in STD_LOGIC;
-		fe: in STD_LOGIC;
+		ovErr: in STD_LOGIC;
+		framErr: in STD_LOGIC;
 		
 		--To Data Processor
 		start: out STD_LOGIC;
-		numWords: out STD_LOGIC_VECTOR (11 downto 0);
+		numWords_bcd: out BCD_ARRAY_TYPE(2 downto 0);
 		dataReady: in STD_LOGIC;
 		byte: in STD_LOGIC_VECTOR (7 downto 0);
 		maxIndex: in STD_LOGIC_VECTOR (11 downto 0);
@@ -21,16 +21,16 @@ entity command_processor is
 		seqDone: in STD_LOGIC;
 
 		--To Tx.
-		data_out: out STD_LOGIC_VECTOR(7 downto 0);
-		txNow: out STD_LOGIC;
-		txDone: in STD_LOGIC;
+		txData: out STD_LOGIC_VECTOR(7 downto 0);
+		txnow: out STD_LOGIC;
+		txdone: in STD_LOGIC;
 		
 		clk: in STD_LOGIC;
 		reset: in STD_LOGIC
 	);
 end entity;
 
-architecture synth of command_processor is
+architecture synth of cmdProc is
 	component rx_controller is
 		port(
 			--Control.
@@ -117,8 +117,8 @@ architecture synth of command_processor is
 			data_print: in STD_LOGIC_VECTOR(7 downto 0);
 
 			--To transmitter.
-			txNow: out STD_LOGIC;
-			txDone: in STD_LOGIC;
+			txnow: out STD_LOGIC;
+			txdone: in STD_LOGIC;
 			data_out: out STD_LOGIC_VECTOR(7 downto 0)
 		);
 	end component;
@@ -135,11 +135,11 @@ begin
 			reset => reset,
 
 			--To Rx.
-			valid => valid,
+			valid => rxnow,
 			done => done,
-			data => data_in,
-			oe => oe,
-			fe => fe,
+			data => rxData,
+			oe => ovErr,
+			fe => framErr,
 
 			--To Tx. side
 			echo_req => echo_req,
@@ -187,7 +187,7 @@ begin
 			dataReady => dataReady,
 			seqDone => seqDone,
 
-			numWords => numWords,
+			numWords => numWords_bcd,
 			byte => byte,
 			dataResults => dataResults,
 			maxIndex => maxIndex
@@ -208,9 +208,9 @@ begin
 			data_print => scheduler_tx_bus,
 
 			--To transmitter.
-			txNow => txNow,
-			txDone => txDone,
-			data_out => data_out
+			txnow => txnow,
+			txdone => txdone,
+			data_out => txData
 	);
 end architecture;
 
@@ -219,5 +219,9 @@ end architecture;
 --Commitment:
 --	Not important, leave for last minute to double check.
 --
---Modified on 01/03/2026
---  Based on Vivado, the unused internal signal is deleted.
+--Modified on 01/03/2026:
+--	Based on Vivado, the unused internal signal is deleted.
+--
+--Modified on 08/03/2026:
+--	Rename the whole entity and some ports to map the provided files.
+--	
