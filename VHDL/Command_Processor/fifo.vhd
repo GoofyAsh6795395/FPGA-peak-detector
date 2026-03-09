@@ -43,7 +43,7 @@ begin
 	end process;
 	
 	clocked_control_unit:
-	process(clk, reset)
+	process(clk, reset, head, tail, counter, counter_next)
 	begin
 		if rising_edge(clk) then
 			if reset = '1' then
