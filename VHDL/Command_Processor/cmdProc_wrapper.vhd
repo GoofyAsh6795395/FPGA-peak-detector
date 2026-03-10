@@ -42,7 +42,7 @@ begin
 	dataResults_packed(15 downto 8) <= dataResults(5);
 	dataResults_packed(7 downto 0) <= dataResults(6);
 
-	wrap_up: entity work.cmdProc_internal(comb) port map(
+	connectIO: entity work.cmdProc_internal(comb) port map(
 		rxData => rxData,
 		rxnow => rxnow,
 		rxdone => rxdone,

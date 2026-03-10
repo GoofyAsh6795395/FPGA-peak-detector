@@ -38,7 +38,7 @@ architecture comb of cmdProc_internal is
 	signal isANNN, isP, isL: STD_LOGIC;
 	signal print_req, print_ack: STD_LOGIC;
 begin
-	rx_controller_connect: entity work.rx_controller(comb) port map (
+	connectA: entity work.rx_controller(comb) port map (
 			--Control.
 			clk => clk,
 			reset => reset,
@@ -61,7 +61,7 @@ begin
 			data_out => rx_out_bus
 	);
 
-	parser_connect: entity work.parser(synth) port map(
+	connectB: entity work.parser(synth) port map(
 			clk => clk,
 			reset => reset,
 			command => rx_out_bus,
@@ -74,7 +74,7 @@ begin
 			isP => isP
 	);
 
-	scheduler_connect: entity work.scheduler(synth) port map(
+	connectC: entity work.scheduler(synth) port map(
 			--External control:
 			clk => clk,
 			reset => reset,
@@ -102,7 +102,7 @@ begin
 			maxIndex => maxIndex
 	);
 
-	tx_controller_connect: entity work.tx_controller(synth) port map(
+	connectD: entity work.tx_controller(synth) port map(
 			clk => clk,
 			reset => reset,
 
