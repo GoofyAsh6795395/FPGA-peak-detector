@@ -81,6 +81,8 @@ begin
 				current_state <= next_state;
 				--Instead of level-sensitive datapath process, the assignment of data register should be put in clocked process
 				--Then, it will be a resettable DFF with an enable signal.
+				echo_ack <= '0';
+				print_ack <= '0';
 				if current_state = ack then
 					--Use if, elsif statement to maintain the priority of echo operation.
 					--In hardware level, I deduce it should be a cascaded mux logic to implement such a function(Not cure)
@@ -119,3 +121,6 @@ end architecture;
 --	To reach this, the signal of "print_ack" and "echo_ack" are designed to be the output of respective registers.
 --	Therefore, the acknowledged signal will not immediately released and the downstream combinational logic will run in order.
 --	
+--Modified at 7pm, 09/03/2026:
+--	The echo_ack was forgetten to pull down, as a register instead of voltage level.
+--	Corrected.
