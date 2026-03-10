@@ -19,6 +19,7 @@ architecture algorithm of fifo is
 	signal queue: memory_type := (others => (others => '0'));	--Aggregate style assignment
 
 	--Register the write pointer, read pointer, counter.
+	--Explicitly indicate the integer range to reduce fan in/out.
 	signal head, tail: integer range 0 to 7 := 0;
 	signal head_reg, tail_reg: integer range 0 to 7 := 0;
 	signal counter, counter_next: integer range 0 to 7 := 0;

@@ -38,7 +38,7 @@ architecture synth of scheduler is
 	type stateType is (idle, run, printData, printL, printP);
 	signal current_state, next_state: stateType := idle;
 	signal NNN_reg: STD_LOGIC_VECTOR(11 downto 0) := (others => '0');
-	signal NNN_int: integer := 0;
+	signal NNN_int: integer range 0 to 1023 := 0;
 		--Hold the received NNN from parser.
 		--This is a integer instead of vector, 
 		--Managed in clock process with conditon that state is idle and isANNN is received.
@@ -136,10 +136,10 @@ begin
 	--Same happens below.
 	datapath:
 	process(current_state, dataReady, printing, data, byte, counterL, counterP, counterData, dataResults, maxIndex, mistake, data_mistake)
-		variable lsb, msb: integer := 0;
-		variable lsb_ascii, msb_ascii: integer := 0;	--Defined as integer, converted to vector when output.
+		variable lsb, msb: integer range 0 to 31 := 0;
+		variable lsb_ascii, msb_ascii: integer range 0 to 255 := 0;	--Defined as integer, converted to vector when output.
 		
-		variable upper, lower: integer := 0;		--For L command to slice the required pieces.
+		variable upper, lower: integer range 0 to 55 := 0;		--For L command to slice the required pieces.
 	begin
 		--Voltage level, but avoid latch inferrence.
 		data_out <= (others => '0');
@@ -290,7 +290,7 @@ begin
 
 	control:
 	process(clk, reset, isANNN, seqDone, printing, print_ack, finished, mistake)
-		variable hundreds, tens, ones: integer := 0;
+		variable hundreds, tens, ones: integer range 0 to 9 := 0;
 	begin
 		hundreds := 0;
 		tens := 0;
