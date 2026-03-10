@@ -76,6 +76,9 @@ architecture synth of scheduler is
 
 begin
 	numWords <= NNN_reg;
+	--The output of numWords is directly connected to the internal register of "NNN_reg";
+	--Not use the input from parser directly in case of glitches.
+	--No need to worry about the type of this output because there is another type-conversion wrapper outside.
 
 	state_transition_logic:
 	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, print_ack, dataReady, mistake)
@@ -359,16 +362,12 @@ begin
 						
 						if print_ack = '1' and counterData = 2 and mistake = '1' then
 							--It means that three ascii code has been already sent and mistake happens.
+							--In this scenario, the right generated data is fully printed.
+--							--And there is another wrong one but still requires printing out.
+							
 							data <= data_mistake;
 							mistake <= '0';
 						end if;
-						
---						if counterData = 0 and mistake = '1' then
---							--In this scenario, the right generated data is fully printed.
---							--And there is another wrong one but still requires printing out.
---							data <= data_mistake;
---							mistake <= '0';
---						end if;
 						
 						if printing = '0' then
 							--When counter condition is satifsied, the state should be transferred to next one.
