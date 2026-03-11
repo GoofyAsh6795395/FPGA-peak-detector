@@ -115,6 +115,8 @@ begin
 		print_ack_tb <= '0';
 		wait for 10 ns;
 
+		wait for 10 ns;
+
 		print_ack_tb <= '1';
 		wait for 10 ns;
 

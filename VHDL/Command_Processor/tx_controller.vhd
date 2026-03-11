@@ -17,8 +17,8 @@ entity tx_controller is
 		data_print: in STD_LOGIC_VECTOR(7 downto 0);
 
 		--To transmitter.
-		txNow: out STD_LOGIC;
-		txDone: in STD_LOGIC;
+		txnow: out STD_LOGIC;
+		txdone: in STD_LOGIC;
 		data_out: out STD_LOGIC_VECTOR(7 downto 0)
 	);
 end entity;
@@ -32,7 +32,7 @@ begin
 	data_out <= data_reg;
 
 	state_transition_logic:
-	process(current_state, echo_req, print_req, txDone)
+	process(current_state, echo_req, print_req, txdone)
 	begin
 		next_state <= current_state;
 		case current_state is
@@ -47,7 +47,7 @@ begin
 			when transmitting =>
 				next_state <= waitting;
 			when waitting =>
-				if txDone = '1' then
+				if txdone = '1' then
 					next_state <= idle;
 				else
 					next_state <= waitting;
@@ -61,42 +61,36 @@ begin
 	process(current_state, echo_req, print_req)
 	begin
 		--Single cycle pulses.
-		echo_ack <= '0';
-		print_ack <= '0';
-		txNow <= '0';
-		case current_state is
-			when ack =>
-				if echo_req = '1' then
-					echo_ack <= '1';
-				elsif print_req = '1' then
-					print_ack <= '1';
-				end if;
-			when transmitting =>
-				txNow <= '1';
-			when others =>
-				null;
-		end case;
+		txnow <= '0';
+		if current_state = transmitting then
+			txnow <= '1';
+		end if;
 	end process;
 
 	control:
-	process(clk, reset)
+	process(clk, reset, echo_req, print_req, data_echo, data_print, current_state)
 	begin
 		if rising_edge(clk) then
 			if reset = '1' then
 				current_state <= idle;
 				--Try aggregate style assignment
 				data_reg <= (others => '0');
-			else
+				echo_ack <= '0';
+				print_ack <= '0';
+			else				
 				current_state <= next_state;
-				
 				--Instead of level-sensitive datapath process, the assignment of data register should be put in clocked process
 				--Then, it will be a resettable DFF with an enable signal.
+				echo_ack <= '0';
+				print_ack <= '0';
 				if current_state = ack then
 					--Use if, elsif statement to maintain the priority of echo operation.
 					--In hardware level, I deduce it should be a cascaded mux logic to implement such a function(Not cure)
 					if echo_req = '1' then
+						echo_ack <= '1';
 						data_reg <= data_echo;
 					elsif print_req = '1' then
+						print_ack <= '1';
 						data_reg <= data_print;
 					end if;
 				end if;
@@ -110,9 +104,23 @@ end architecture;
 --
 --Firstly drafted on 26/02/2026.
 --
---Commitment at 5pm, 26/02/2026
+--Commitment at 5pm, 26/02/2026:
 --	Not finished.
 --
---Commitment at 11am, 27/02/2026
+--Commitment at 11am, 27/02/2026:
 --	Succeed compiling, but not tested.
 --
+--Modified on 08/03/2026:
+--	Rename some ports to match the testbench and assignment requirements.
+--
+--Modified at 12pm, 09/03/2026:
+--	Corrected the sensitivity list, added all RHS and conditions used.
+--
+--Modified at 6pm, 09/03/2026:
+--	The handshaking timing-loop is identified and corrected.
+--	To reach this, the signal of "print_ack" and "echo_ack" are designed to be the output of respective registers.
+--	Therefore, the acknowledged signal will not immediately released and the downstream combinational logic will run in order.
+--	
+--Modified at 7pm, 09/03/2026:
+--	The echo_ack was forgetten to pull down, as a register instead of voltage level.
+--	Corrected.

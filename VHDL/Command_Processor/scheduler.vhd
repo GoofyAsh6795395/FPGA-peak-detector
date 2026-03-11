@@ -38,7 +38,7 @@ architecture synth of scheduler is
 	type stateType is (idle, run, printData, printL, printP);
 	signal current_state, next_state: stateType := idle;
 	signal NNN_reg: STD_LOGIC_VECTOR(11 downto 0) := (others => '0');
-	signal NNN_int: integer := 0;
+	signal NNN_int: integer range 0 to 1023 := 0;
 		--Hold the received NNN from parser.
 		--This is a integer instead of vector, 
 		--Managed in clock process with conditon that state is idle and isANNN is received.
@@ -63,16 +63,25 @@ architecture synth of scheduler is
 			--So no need to worry about if it will be pull up again by accident.
 			--Also, the request signal should not be triggered.
 
-	signal data, data_next: STD_LOGIC_VECTOR(7 downto 0);		
+	signal data: STD_LOGIC_VECTOR(7 downto 0);		
 		--It's binary sequence, same with byte, maintained in datapath process.
 
 	signal finished: STD_LOGIC := '0';				
 		--An indicator of seqDone, updated in clock process.
+		
+	signal data_mistake: STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
+	signal mistake: STD_LOGIC := '0';	
+		--An indicator of whether another dataReady is received even I pull down the signal "start."
+		--It's all of the fault of university and such circumstance is definitely not allowed in our data processor design.
+
 begin
-    numWords <= NNN_reg;
-	--What's managed here?
+	numWords <= NNN_reg;
+	--The output of numWords is directly connected to the internal register of "NNN_reg";
+	--Not use the input from parser directly in case of glitches.
+	--No need to worry about the type of this output because there is another type-conversion wrapper outside.
+
 	state_transition_logic:
-	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, print_ack, dataReady)
+	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, print_ack, dataReady, mistake)
 	begin
 		next_state <= current_state;
 		case current_state is
@@ -93,8 +102,10 @@ begin
 				end if;
 			when printData =>
 				--Start state transiton if counter condition is met.
-				if counterData = 2 and print_ack = '1' then
+				if counterData = 2 and print_ack = '1' and mistake = '0' then
 					--This means that two data have already been sent previously, and the latest one just be sent.
+					--So state can be updated to next one now.
+					--If there isn't anything awaiting print, even it should not exist.
 					if finished = '0' then
 						next_state <= run;
 					elsif isP = '1' then
@@ -127,15 +138,12 @@ begin
 	--Similar with the process(all) syntax in VHDL-2008, here, I'll manually list all of them to avoid errors.
 	--Same happens below.
 	datapath:
-	process(current_state, dataReady, printing, data, byte, counterL, counterP, counterData, dataResults, maxIndex)
-		variable lsb, msb: integer := 0;
-		variable lsb_ascii, msb_ascii: integer := 0;	--Defined as integer, converted to vector when output.
+	process(current_state, dataReady, printing, data, byte, counterL, counterP, counterData, dataResults, maxIndex, mistake, data_mistake)
+		variable lsb, msb: integer range 0 to 31 := 0;
+		variable lsb_ascii, msb_ascii: integer range 0 to 255 := 0;	--Defined as integer, converted to vector when output.
 		
-		variable upper, lower: integer := 0;		--For L command to slice the required pieces.
+		variable upper, lower: integer range 0 to 55 := 0;		--For L command to slice the required pieces.
 	begin
-		--Register updates:
-		data_next <= data;
-
 		--Voltage level, but avoid latch inferrence.
 		data_out <= (others => '0');
 		print_req <= '0';
@@ -155,10 +163,7 @@ begin
 				null;
 			when run => 
 				start <= '1';
-				if dataReady = '1' then
-					--Immediately store the byte signal once it's ready.
-					data_next <= byte;
-				end if;
+				
 			when printData =>
 				--Request signal follows the printing one, instead of single cycle pulse
 				if printing = '1' then
@@ -171,6 +176,7 @@ begin
 					--Use unsigned convert to interpret data because ASCII code is unsigned.
 						--0 to 9: unsigned vector ranging from 48 to 57
 						--A to F: u-vec from 65 to 90
+
 					msb := to_integer(unsigned(data(7 downto 4)));
 					lsb := to_integer(unsigned(data(3 downto 0)));
 					
@@ -282,17 +288,16 @@ begin
 				else
 					print_req <= '0';
 				end if;
-			when others =>
 		end case;
 	end process;
 
 	control:
-	process(clk, reset, isANNN, seqDone, printing, print_ack, finished)
-		variable hundreds, tens, ones: integer := 0;
+	process(clk, reset, isANNN, seqDone, printing, print_ack, finished, mistake)
+		variable hundreds, tens, ones: integer range 0 to 9 := 0;
 	begin
-	    hundreds := 0;
-	    tens := 0;
-	    ones := 0;         --To avoid latch inference
+		hundreds := 0;
+		tens := 0;
+		ones := 0;         --To avoid latch inference
 	
 		if rising_edge(clk) then
 			if reset = '1' then
@@ -305,9 +310,11 @@ begin
 				printing <= '0';
 				data <= (others => '0');
 				current_state <= idle;
+				data_mistake <= (others => '0');
+				mistake <= '0';
+				
 			else
-			    current_state <= next_state;
-				data <= data_next;
+				current_state <= next_state;
 				if seqDone = '1' then
 					finished <= '1';
 					--Keep high after seqDone appears, reset until idle.
@@ -323,9 +330,11 @@ begin
 							--Finished signal does not used anymore after running state
 							--It's a good idea to keep its natural semantics.
 							--So pull down if next ANNN cycle starts.
+							--Also, because while NNN data is not finished, it will not turn to idle state
+							--So no need to worry if this clean operation will interrupt NNN iterations.
 							finished <= '0';
-                            NNN_reg <= NNN;
-                            --Capture the NNN into a register to avoid it changing later.
+							NNN_reg <= NNN;
+							--Capture the NNN into a register to avoid it changing later.
 
 							--Convert BCD to integer, then hold this value to control iteration times.
 							hundreds := to_integer(unsigned(NNN(11 downto 8)));
@@ -335,7 +344,31 @@ begin
 							NNN_int <= hundreds * 100 + tens * 10 + ones;
 						end if;
 						
+					when run =>
+						if dataReady = '1' then
+							--Immediately store the byte signal once it's ready.
+							data <= byte;
+						end if;
+					
 					when printData =>
+						if dataReady = '1' then
+							--It means that another dataReady is received while printing current data.
+							--It's regarded as a mistake caused by universities' trash data processor
+							--To deal with it, use a flag and a temporary register to capture the wrong byte input.
+							--In case that it is dumped by mistake.
+							mistake <= '1';
+							data_mistake <= byte;
+						end if;
+						
+						if print_ack = '1' and counterData = 2 and mistake = '1' then
+							--It means that three ascii code has been already sent and mistake happens.
+							--In this scenario, the right generated data is fully printed.
+--							--And there is another wrong one but still requires printing out.
+							
+							data <= data_mistake;
+							mistake <= '0';
+						end if;
+						
 						if printing = '0' then
 							--When counter condition is satifsied, the state should be transferred to next one.
 							--So don't worry if the printing flag is set wrong.
@@ -441,3 +474,34 @@ end architecture;
 --	Function of P print is tested working in order.
 --		However, the behaviour of down-stream cannot be fully simulated by testbench.
 --		Thus, this point worth double checking if there is something wrong when simulating everything together.
+--
+--Spotted at 11pm, 05/03/2026:
+--	It seems to be better to define the internal indicator "printing" as a volatge-level instead of resigering it.
+--		Now, the impact is, the start-up printing after state transition is stalling for 1 more cycle.
+--			Which means that totally two clock cycles are used for print to start up.
+--		However, I'll choose to leave it here, at this stage because:
+--			A. Not a function disaster and the impact is limited.
+--			B. A serious change in whole structure is required rewriting if the "printing" logic gets different.
+--
+--Suggestions at 6pm, 09/03/2026:
+--	I have no idea if the start signal should be registered or not.
+--	It depends on if it will cause a combinational loop with downstream machine.
+--	Check the "dataReady" signal of downstream later to evaluate this risk.
+--	I have tracked the "start" signal and found the "dataReady" does not directly rely on it.
+--		It directly depends on state register and counter logic.
+--
+--Problems identified at 10pm, 09/03/2026:
+--	The university provided data processor may send dataReady twice even after we pull down the signal "start".
+--	Fuck,
+--
+--Modified at 2am, 10/03/2026:
+--	Now this code could successfully deal with a unstable upstream source.
+--	A flag "mistake" is used to capture if another dataReady is received while printing.
+--		This flag is clean when printing has been executed for totally 3 time, and the flag is still high level.
+--	Another signal, data_mistake, is also declared, to capture the byte signal at a wrong time.
+--	Both of them are managed in clocking process.
+--	The function is verified by simulation, as expected.
+--		However, seems that the simulation only involve a normal ANNN and corresponding task.
+--		More complex operations, like L command, P command, echo interrupt are scheduled in future.
+--			To test the behaviour under such operations in real hardware.
+

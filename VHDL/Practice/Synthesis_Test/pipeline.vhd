@@ -11,17 +11,16 @@ entity mul_accum is
 	);
 end entity;
 
---architecture normal of mul_accum is
---    signal a_reg, b_reg, c_reg: integer range 0 to 256;
---begin
---	process(clk, a, b, c)
---	begin
---		if rising_edge(clk) then
---		    a_reg <= a;
---		    b_reg <= b;
---		    c_reg <= c;
---			result <= a_reg * b_reg + c_reg;
---		end if;
---	end process;
---end architecture;
+architecture normal of mul_accum is
+    signal a_reg, b_reg, c_reg: integer range 0 to 256;
+begin
+	process(clk, a, b, c)
+	begin
+		if rising_edge(clk) then
+		    a_reg <= a;
+		    b_reg <= b;
+		    c_reg <= c;
+			result <= a_reg * b_reg + c_reg;
+		end if;
+	end process;
 end architecture;

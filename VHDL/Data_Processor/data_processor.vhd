@@ -2,7 +2,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
 
-entity data_processor is
+entity dataConsume is
 	port(
 		clk: in STD_LOGIC;
 		reset: in STD_LOGIC;
@@ -25,20 +25,24 @@ entity data_processor is
 	);
 end entity;
 
-architecture synth of data_processor is
+architecture synth of dataConsume is
 	type stateType is (idle, request, processing, response);
 	type memory is array (0 to 6) of STD_LOGIC_VECTOR(7 downto 0);
 	signal buf, buf_next: memory := (others => (others => '0'));
 	signal result, result_next: memory := (others => (others => '0'));
 
 	signal current_state, next_state: stateType := idle;
-	signal ctrl2_delayed: STD_LOGIC;
-	signal finished, finished_reg: STD_LOGIC := '1';
+
+	signal finished, finished_reg: STD_LOGIC := '1';	--The initial value must be set to 1, it means no work is unfinished without doing any operation.
 	signal NNN, NNN_reg: integer := 0;
 
 	signal max, max_index: integer := 0;
 	signal max_reg, max_index_reg: integer := 0;
 	signal counter, counter_next: integer := 0;
+		--Based on the update condition of counter, this signal means which number is currently being processed.
+		--Thus, its valid value ranges from 1, 2, 3, ...., NNN
+
+	signal ctrl2_delayed: STD_LOGIC;
 	signal ctrl1_reg: STD_LOGIC := '0';
 		--To flip ctrl1, a register must be required to store the latest value.
 
@@ -46,7 +50,7 @@ begin
 	--Always connect the output of ctrl_1 register to port ctrl1.
 	ctrl1 <= ctrl1_reg;
 
-	--If the data on byte port is received by down-stream is determined by dataReady signal.
+	--Whether the data on byte port should be received by down-stream or not is determined by dataReady signal.
 	--Therefore, dataReady should still be 0 for the case when current state is "response" but counter less than 3.
 	byte <= buf(3);
 
@@ -60,7 +64,7 @@ begin
 
 	integer_to_BCD:
 	process(max_index)
-	variable hundreds, tens, ones: integer := 0;
+		variable hundreds, tens, ones: integer := 0;
 	--Used to convert the integer of max index to BCD.
 	begin
 		hundreds := (max_index / 100) mod 10;
@@ -81,18 +85,13 @@ begin
 					next_state <= request;
 				end if;
 			when request =>
-				if (ctrl2 xor ctrl2_delayed) = '1' then
+				if (ctrl2 xor ctrl2_delayed) = '1' then		--It means that ctrl2 is toggled.
 					next_state <= processing;
 				else
 					next_state <= request;
 				end if;
 			when processing =>
-				if counter >= NNN and counter < (NNN + 3) then
-					--stall.
-					next_state <= processing;
-				else
-					next_state <= response;
-				end if;
+				next_state <= response;
 			when response =>
 				next_state <= idle;
 			when others =>
@@ -103,7 +102,7 @@ begin
 	--In datapath process, the counter_next, buf_next, result_next, max_reg, finished_reg 
 	datapath:
 	process(current_state, NNN, counter, finished, max, max_index, buf, result, data, numWords, start, buf_next, max_reg)
-	variable ones, tens, hundreds: integer := 0;
+		variable ones, tens, hundreds: integer := 0;
 		--Used to slice the input BCD numwords.
 	begin
 		--Avoid latch inference.
@@ -161,12 +160,10 @@ begin
 				buf_next(5) <= buf(6);
 
 				--Append the retrieved data or padding value.
-				if counter >= 0 and counter < NNN then
+				if counter >= 1 and counter <= NNN then
 					buf_next(6) <= data;
-				elsif counter >= NNN and counter < (NNN + 3) then
+				elsif counter > NNN and counter <= (NNN + 3) then
 					buf_next(6) <= "10000000";
-					--Consider later, 03/03/2026.
-					counter_next <= counter + 1;
 				end if;
 
 				if counter = (NNN + 3) then
@@ -175,6 +172,8 @@ begin
 				end if;
 				
 				--Check if max value is found or not.
+				--Don't check it if counter = (1, 2, 3)
+				--The counter's interval of possible max emerge is from 3 to NNN+3;
 				if counter = 4 then
 					--First number case: initialise everything.
 					max_reg <= to_integer(signed(buf_next(3)));
@@ -226,6 +225,7 @@ begin
 				finished <= '0';
 				counter <= 0;
 				ctrl2_delayed <= '0';
+				ctrl1_reg <= '0';
 				
 				max_index <= 0;
 				max <= 0;
@@ -234,7 +234,6 @@ begin
 				current_state <= idle;
 				--Initialise
 			else
-				--If reset is considered...
 				buf <= buf_next;
 				max <= max_reg;
 				max_index <= max_index_reg;
@@ -250,7 +249,6 @@ begin
 					--Ctrl1 would be delayed by one cycle, check it later.
 				end if;
 			end if;
-			
 		end if;
 	end process;
 end architecture;
@@ -279,7 +277,7 @@ end architecture;
 --	13. Priority: Byte signal is not used at all.
 --	
 --	Other suggestions beyond code:
---	1. A corresponding ASM chart maybe required.
+--	1. A corresponding ASM chart may be required.
 --		Try Microsoft Visio.
 --	2. Try HLS(High Level Synthesis)! to have a double check.
 --End commitment;
@@ -303,46 +301,97 @@ end architecture;
 --Problems identified at 2pm, 03/03/2026:
 --	The buffer is forgetten to not update, already correct.
 --	Rename: max_index, max_value, max_value_reg.
---  State transition is forgetten in clocked process, corrected.
---  Line 174, should use signal "finished_reg" instead of "finished" here.
---  To optimise:
---      Indicate the range of every integer to save resources and improve possible delay.
---      Code can be simplified to enhance the readability.
---      The integer-BCD conversion can be more elegant by shift operatior.
+--	State transition is forgetten in clocked process, corrected.
+--	Line 174, should use signal "finished_reg" instead of "finished" here.
+--	To optimise:
+--		Indicate the range of every integer to save resources and improve possible delay.
+--		Code can be simplified to enhance the readability.
+--		The integer-BCD conversion can be more elegant by shift operatior.
 --   
 --Modified at 6pm, 03/03/2026:
---  The name of entity and ports, their respective dataType is required changing to match the testbench's.
+--	The name of entity and ports, their respective dataType is required changing to match the testbench's.
 --  
 --Suggestions at 7pm, 03/03/2026:
---  The finished signal should be totally moved in the clock process
---      A. It's used only twice and doesn't rely on a complicated condition.
---      B. To decrease the number of internal signals is to decrease complexity.
---  Similar reason and action is suggested taking on the signal "counter"
---  The maxIndex name should be changed to avoid the conflict between internal signals and output port.
+--	The finished signal should be totally moved in the clock process
+--		A. It's used only twice and doesn't rely on a complicated condition.
+-- 		B. To decrease the number of internal signals is to decrease complexity.
+--	Similar reason and action is suggested taking on the signal "counter"
+--	The maxIndex name should be changed to avoid the conflict between internal signals and output port.
 --
 --Modified at 8pm, 03/03/2026:
---  Multiple-drive problem of ports is solved.
---      Reported by Vivado.
---  The result is forgetten updating in clocking process, corrected.
---      Spotted in Vivado Messages: drive by constant 0.
+--	Multiple-drive problem of ports is solved.
+--		Reported by Vivado.
+--	The result is forgetten updating in clocking process, corrected.
+--	Spotted in Vivado Messages: drive by constant 0.
 --
 --Thoughts at 10pm, 03/03/2026:
---  To optimise timing & delay
---      1. Expand the if-elsif chain to avoid cascaded LUT.
---          Lots of time the we don't need priority information.
---      2. Decrease fan in/out to make the equivalent capacitor smaller
---          Thus, the slew rate is increased.
---          Especially the integer type, indicate it's range.
---      3. The arithmetic operations, decrease the bitwidth
---          To avoid carry-ripple-adder as I remember?
+--	To optimise timing & delay
+--		1. Expand the if-elsif chain to avoid cascaded LUT.
+--			Lots of time the we don't need priority information.
+--		2. Decrease fan in/out to make the equivalent capacitor smaller
+--			Thus, the slew rate is increased.
+--			Especially the integer type, indicate it's range.
+--		3. The arithmetic operations, decrease the bitwidth
+--			To avoid carry-ripple-adder as I remember?
 --
 --Modified at 3pm, 04/03/2026:
---  Corrected the timing-loop of combinational logic of max.
---  Notified by Vivado.
+--	Corrected the timing-loop of combinational logic of signal "max".
+--		Notified by Vivado.
 --
 --Suggestions at 23pm, 04/03/2026:
---  To correct the port type and their name.
---  To indicate the integer range
---  To simplify the if-elsif logic
---  To simplify the vector-assignment logic
---  Awaiting finishing in next group work session expected on 10th, March.
+--	To correct the port type and their name.
+--	To indicate the integer range
+--	To simplify the if-elsif logic
+--	To simplify the vector-assignment logic
+--	Awaiting finishing in next group work session expected on 10th, March.
+--
+--Modified on 05/03/2026:
+--	Ths nasty indentation generated by Vivado is corrected.
+--		Maybe do not use Vivado editor to make changes on code anymore.
+--
+--Commitment at 6pm, 06/03/2026:
+--	Condition on line 91, namely, determining the next_state by counter, maybe result in off by one error.
+--		Considering where the counter updates?
+--		If the counter is updated within a certain state:
+--			The next_state process is happening concurrently.
+--			But it's new value cannot be read out, in the next_state logic.
+--		Two solutions:
+--			A. Use an off-by-one condition.
+--			B. Use counter_next to check ahead.
+--		Here, I will select A, because the state transition logic in essence also the update logic of dependent signal "counter":
+--			This is something referred to as combinational loop if
+--			we use the value of voltage level "counter_next" to determine it's new value. 
+--			Maybe not severe as I think, but it's better to avoid it.
+--	Actually, the procedure now is totally wrong and I'll give related commits once corrected.
+--
+--Updated at 7pm, 06/03/2026:
+--	The problem now is, during the final stage of padding three extra value, the state cannot always be the "processing" one 
+--	for the purpose of printing last three numbers.
+--	I think, perhaps we don't a explicit stall of printing system.
+--		Just keep working, until an iteration of NNN + 3 is accompolished.
+--	Thus, the current state-transition logic is, turn to "response" unconditionally as the next one of "processing".
+--	Because we don't stay in processing state for extra three cycles any more,
+--		The redundant counter update within "processing" is also correspondingly removed.
+--
+--	The counter logic:
+--	Since we're using (++ counter) instead of (counter ++).
+--	In other words, counter is updated before checked, so it has no chance to be "0" in every comparison.
+--	That's the reason I changed the iteration condition.
+--
+--Updated at 8pm, 06/03/2026:
+--	Rename the entity to match the component name is testbench.
+--	Setup and hold slack now: 3.59ns, 0.139ns.
+--
+--Updated at 9pm, 06/03/2026:
+--	The reset logic of ctrlOut signal is added.
+--	No need to worry about the circumstance that a toggle is mistakenly detected by down-stream data generator when the ctrlOut is '1' before reset and '0' after.
+--		Since I have checked the down-stream design and found it has also flush the registered my ctrlOut by '0'.
+--
+--Suggestions on 07/03/2026:
+--	Consider the assignments in processing state.
+--	Seems that there is a servere combinational dependent logic and it exactly forms the critical path.
+--	In other words, cascaded, and i don't find its necessity.
+--
+--Reminders on 08/03/2026:
+--	It's not wise an idea to directly drive a certain output port by combinational logic for the reason of stability.
+--	Thus, we use result array grid and now easy to change the port name.
