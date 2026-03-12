@@ -133,12 +133,14 @@ begin
 			--To satisfy the syntax check, use "null";
 			when idle =>
 				if start = '1' then
+					   --Update before actual manipulation happens, thus, the boundary should be correspondingly changes.
+					   --Likewise, ++i, rather than i++;
 					if finished = '1' then
 						--This means that, the last cycle is end and now a new cycle start.
 						finished_reg <= '0';
 
 						--Flush the stored data
-						counter_next <= 0;
+						counter_next <= 1;
 						max_reg <= 0;
 						max_index_reg <= 0;
 						result_next <= (others => (others => '0'));
@@ -149,11 +151,10 @@ begin
 						tens := to_integer(unsigned(numWords_bcd(1)));
 						ones := to_integer(unsigned(numWords_bcd(0)));
 						NNN_reg <= (hundreds * 100 + tens * 10 + ones);
-					else
-						counter_next <= counter + 1;
-						--Update before actual manipulation happens, thus, the boundary should be correspondingly changes.
-						--Likewise, ++i, rather than i++;
 					end if;
+					
+					counter_next <= counter + 1;
+						--Must be placed here instead above.
 				end if;
 			when request => 
 				null;
@@ -391,7 +392,17 @@ end architecture;
 --	It's not wise an idea to directly drive a certain output port by combinational logic for the reason of stability.
 --	Thus, we use result array grid and now easy to change the port name.
 --
---Problems identified on 12/02/2026:
+--Problems identified at 12pm, 12/03/2026:
 --	The flag, "finished" should be set to '1' at initial condition.
 --		We indeed have considered this point, however, we forgetten the assignment when reset, and now corrected.
 --	Another problem is, there is an off-by-one problem observed from simulation, as for the maxIndex signal.
+--	Hmm, actually no problem since the index starts from 0 instead of 1.
+--
+--Spotted at 2pm, 12/03/2026:
+--	It seems that we need to immediately register the input data once detecting that the ctrlIn signal is toggled.
+--	No, we already did.
+--	The problem is casued by the wrong counter update logic, it should be updated as well even if it's in first round.
+--
+--Modified at 3pm, 12/03/2026:
+--	The counter logic gets corrected, seriously.
+--	Verified by a rough test.
