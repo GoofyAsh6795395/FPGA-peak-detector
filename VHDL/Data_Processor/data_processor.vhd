@@ -1,4 +1,5 @@
 library IEEE;
+use work.common_pack.all;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
 
@@ -8,19 +9,19 @@ entity dataConsume is
 		reset: in STD_LOGIC;
 
 		--To dataGen:
-		ctrl1: out STD_LOGIC;
-		ctrl2: in STD_LOGIC;
+		ctrlOut: out STD_LOGIC;
+		ctrlIn: in STD_LOGIC;
 		data: in STD_LOGIC_VECTOR(7 downto 0);
 		
 		--To cmdProc:
 		start: in STD_LOGIC;
-		numWords: in STD_LOGIC_VECTOR(11 downto 0);
+		numWords_bcd: in BCD_ARRAY_TYPE(2 downto 0);
 		seqDone: out STD_LOGIC;
 		dataReady: out STD_LOGIC;
 
 		--Data:
-		maxIndex: out STD_LOGIC_VECTOR(11 downto 0);	--BCD encoding
-		dataResults: out STD_LOGIC_VECTOR(55 downto 0);	--Binary sequence, using 2's complement
+		maxIndex: out BCD_ARRAY_TYPE(2 downto 0);	--BCD encoding
+		dataResults: out CHAR_ARRAY_TYPE(0 to 6);	--Binary sequence, using 2's complement
 		byte: out STD_LOGIC_VECTOR(7 downto 0)
 	);
 end entity;
@@ -42,41 +43,45 @@ architecture synth of dataConsume is
 		--Based on the update condition of counter, this signal means which number is currently being processed.
 		--Thus, its valid value ranges from 1, 2, 3, ...., NNN
 
-	signal ctrl2_delayed: STD_LOGIC;
-	signal ctrl1_reg: STD_LOGIC := '0';
+	signal ctrlIn_delayed: STD_LOGIC;
+	signal ctrlOut_reg: STD_LOGIC := '0';
 		--To flip ctrl1, a register must be required to store the latest value.
 
 begin
 	--Always connect the output of ctrl_1 register to port ctrl1.
-	ctrl1 <= ctrl1_reg;
+	ctrlOut <= ctrlOut_reg;
 
 	--Whether the data on byte port should be received by down-stream or not is determined by dataReady signal.
 	--Therefore, dataReady should still be 0 for the case when current state is "response" but counter less than 3.
 	byte <= buf(3);
 
-	dataResults(55 downto 48) <= result(0);
-	dataResults(47 downto 40) <= result(1);
-	dataResults(39 downto 32) <= result(2);
-	dataResults(31 downto 24) <= result(3);
-	dataResults(23 downto 16) <= result(4);
-	dataResults(15 downto 8) <= result(5);
-	dataResults(7 downto 0) <= result(6);
+	dataResults(0) <= result(0);
+	dataResults(1) <= result(1);
+	dataResults(2) <= result(2);
+	dataResults(3) <= result(3);
+	dataResults(4) <= result(4);
+	dataResults(5) <= result(5);
+	dataResults(6) <= result(6);
+	--Based on our assignment style of "buf" or "result", it hints that the latest number is stored in 
+	--the final index of this array.
+	--Namely, 
 
 	integer_to_BCD:
 	process(max_index)
 		variable hundreds, tens, ones: integer := 0;
-	--Used to convert the integer of max index to BCD.
+		--Used to convert the integer of max index to BCD.
 	begin
 		hundreds := (max_index / 100) mod 10;
 		tens := (max_index / 10) mod 10;
 		ones := max_index mod 10;
-		maxIndex(11 downto 8) <= std_logic_vector(to_unsigned(hundreds, 4));
-		maxIndex(7 downto 4) <= std_logic_vector(to_unsigned(tens, 4));
-		maxIndex(3 downto 0) <= std_logic_vector(to_unsigned(ones, 4));
+		maxIndex(2) <= std_logic_vector(to_unsigned(hundreds, 4));
+		maxIndex(1) <= std_logic_vector(to_unsigned(tens, 4));
+		maxIndex(0) <= std_logic_vector(to_unsigned(ones, 4));
+		--Thus, following the code convention of university, the LSB of this integer is placed at index 0 of this container.
 	end process;
 
 	state_transition_logic:
-	process(current_state, start, counter, ctrl2_delayed, ctrl2, NNN)
+	process(current_state, start, counter, ctrlIn_delayed, ctrlIn, NNN)
 	begin
 		next_state <= current_state;
 		case current_state is
@@ -85,7 +90,7 @@ begin
 					next_state <= request;
 				end if;
 			when request =>
-				if (ctrl2 xor ctrl2_delayed) = '1' then		--It means that ctrl2 is toggled.
+				if (ctrlIn xor ctrlIn_delayed) = '1' then		--It means that ctrl2 is toggled.
 					next_state <= processing;
 				else
 					next_state <= request;
@@ -101,7 +106,7 @@ begin
 
 	--In datapath process, the counter_next, buf_next, result_next, max_reg, finished_reg 
 	datapath:
-	process(current_state, NNN, counter, finished, max, max_index, buf, result, data, numWords, start, buf_next, max_reg)
+	process(current_state, NNN, counter, finished, max, max_index, buf, result, data, numWords_bcd, start, buf_next, max_reg)
 		variable ones, tens, hundreds: integer := 0;
 		--Used to slice the input BCD numwords.
 	begin
@@ -140,12 +145,14 @@ begin
 						buf_next <= (others => (others => '0'));
 						
 						--Slice BCD
-						hundreds := to_integer(unsigned(numWords(11 downto 8)));
-						tens := to_integer(unsigned(numWords(7 downto 4)));
-						ones := to_integer(unsigned(numWords(3 downto 0)));
+						hundreds := to_integer(unsigned(numWords_bcd(2)));
+						tens := to_integer(unsigned(numWords_bcd(1)));
+						ones := to_integer(unsigned(numWords_bcd(0)));
 						NNN_reg <= (hundreds * 100 + tens * 10 + ones);
 					else
 						counter_next <= counter + 1;
+						--Update before actual manipulation happens, thus, the boundary should be correspondingly changes.
+						--Likewise, ++i, rather than i++;
 					end if;
 				end if;
 			when request => 
@@ -160,6 +167,7 @@ begin
 				buf_next(5) <= buf(6);
 
 				--Append the retrieved data or padding value.
+				--Based on the value of counter, to find out the current time of iteration.
 				if counter >= 1 and counter <= NNN then
 					buf_next(6) <= data;
 				elsif counter > NNN and counter <= (NNN + 3) then
@@ -180,27 +188,14 @@ begin
 					max_index_reg <= 0;
 					--Initialise result buffer and max_value;
 					--What's contained in buf_next: (0, 0, 0, 1st_val, 2nd_val, 3rd_val, 4th_val).
-					result_next(0) <= buf_next(0);
-					result_next(1) <= buf_next(1);
-					result_next(2) <= buf_next(2);
-					result_next(3) <= buf_next(3);
-					result_next(4) <= buf_next(4);
-					result_next(5) <= buf_next(5);
-					result_next(6) <= buf_next(6);
+					result_next <= buf_next;
 
 				elsif counter > 4 then
 					if max < signed(buf_next(3)) then
 						--Max value and index should be updated.
 						max_reg <= to_integer(signed(buf_next(3)));
 						max_index_reg <= counter - 4;
-
-						result_next(0) <= buf_next(0);
-						result_next(1) <= buf_next(1);
-						result_next(2) <= buf_next(2);
-						result_next(3) <= buf_next(3);
-						result_next(4) <= buf_next(4);
-						result_next(5) <= buf_next(5);
-						result_next(6) <= buf_next(6);
+						result_next <= buf_next;
 					end if;
 				end if;
 					
@@ -216,16 +211,16 @@ begin
 	end process;
 		
 	clock:
-	process(clk, reset, current_state, max_reg, ctrl2, counter_next, finished_reg, NNN_reg, ctrl1_reg)
+	process(clk, reset, current_state, max_reg, ctrlIn, counter_next, finished_reg, NNN_reg, ctrlOut_reg)
 	--To avoid mistakes in simulation, put every signal involved in RHS of assignment and conditions, into the sensitivity list.
 	begin
 		if rising_edge(clk) then
 			if reset = '1' then
 				NNN <= 0;
-				finished <= '0';
+				finished <= '1';
 				counter <= 0;
-				ctrl2_delayed <= '0';
-				ctrl1_reg <= '0';
+				ctrlIn_delayed <= '0';
+				ctrlOut_reg <= '0';
 				
 				max_index <= 0;
 				max <= 0;
@@ -237,7 +232,7 @@ begin
 				buf <= buf_next;
 				max <= max_reg;
 				max_index <= max_index_reg;
-				ctrl2_delayed <= ctrl2;
+				ctrlIn_delayed <= ctrlIn;
 				counter <= counter_next;
 				finished <= finished_reg;
 				NNN <= NNN_reg;
@@ -245,7 +240,7 @@ begin
 				current_state <= next_state;
 				
 				if current_state = idle and start = '1' then
-					ctrl1_reg <= not ctrl1_reg;
+					ctrlOut_reg <= not ctrlOut_reg;
 					--Ctrl1 would be delayed by one cycle, check it later.
 				end if;
 			end if;
@@ -395,3 +390,8 @@ end architecture;
 --Reminders on 08/03/2026:
 --	It's not wise an idea to directly drive a certain output port by combinational logic for the reason of stability.
 --	Thus, we use result array grid and now easy to change the port name.
+--
+--Problems identified on 12/02/2026:
+--	The flag, "finished" should be set to '1' at initial condition.
+--		We indeed have considered this point, however, we forgetten the assignment when reset, and now corrected.
+--	Another problem is, there is an off-by-one problem observed from simulation, as for the maxIndex signal.
