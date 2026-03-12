@@ -30,9 +30,11 @@ architecture comb of cmdProc is
 	signal dataResults_packed: STD_LOGIC_VECTOR(55 downto 0);
 
 begin
+
 	maxIndex_packed(3 downto 0) <= maxIndex(0);
 	maxIndex_packed(7 downto 4) <= maxIndex(1);
 	maxIndex_packed(11 downto 8) <= maxIndex(2);
+	--MSB is stored at index 2 of this array, while LSB is 0.
 
 	dataResults_packed(55 downto 48) <= dataResults(0);
 	dataResults_packed(47 downto 40) <= dataResults(1);
@@ -41,6 +43,10 @@ begin
 	dataResults_packed(23 downto 16) <= dataResults(4);
 	dataResults_packed(15 downto 8) <= dataResults(5);
 	dataResults_packed(7 downto 0) <= dataResults(6);
+	--Following the convention from uni, the latest digit is placed in index from (7 downto 0).
+	--It enough to just ensure the order of printing to be right, namely, from oldest to youngest.
+	--Here, from 0 to 6 of CHAR_ARRAY_TYPE.
+	--For internal STD_LOGIC_VECTOR, is, from 55 to 0, rather than inversed.
 
 	connectIO: entity work.cmdProc_internal(comb) port map(
 		rxData => rxData,

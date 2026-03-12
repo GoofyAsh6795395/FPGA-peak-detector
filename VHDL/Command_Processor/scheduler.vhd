@@ -277,6 +277,7 @@ begin
 						when 2 =>
 							data_out <= "00100000";	
 						when 3 =>
+							--Follow the convention of order, print the MSB, with index range from 11 to 8, at beginning.
 							data_out <= "0011" & maxIndex(11 downto 8);
 						when 4 =>
 							data_out <= "0011" & maxIndex(7 downto 4);
