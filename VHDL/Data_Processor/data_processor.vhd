@@ -53,7 +53,7 @@ begin
 
 	--Whether the data on byte port should be received by down-stream or not is determined by dataReady signal.
 	--Therefore, dataReady should still be 0 for the case when current state is "response" but counter less than 3.
-	byte <= buf(3);
+	byte <= buf(6);
 
 	dataResults(0) <= result(0);
 	dataResults(1) <= result(1);
@@ -140,7 +140,9 @@ begin
 						finished_reg <= '0';
 
 						--Flush the stored data
-						counter_next <= 1;
+						counter_next <= 1;			
+							--Very important an initial condition.
+							--Not 0, but 1.
 						max_reg <= 0;
 						max_index_reg <= 0;
 						result_next <= (others => (others => '0'));
@@ -151,10 +153,10 @@ begin
 						tens := to_integer(unsigned(numWords_bcd(1)));
 						ones := to_integer(unsigned(numWords_bcd(0)));
 						NNN_reg <= (hundreds * 100 + tens * 10 + ones);
+					else
+						counter_next <= counter + 1;
+						--This branch means now it's now the first case when NNN loops start.
 					end if;
-					
-					counter_next <= counter + 1;
-						--Must be placed here instead above.
 				end if;
 			when request => 
 				null;
@@ -201,7 +203,7 @@ begin
 				end if;
 					
 			when response =>
-				if counter >= 4 then
+				if counter >= 1 and counter <= NNN then
 				--It means that waht's currently on the port "byte" is the actual generated value.
 					dataReady <= '1';
 				end if;
@@ -240,9 +242,13 @@ begin
 				result <= result_next;
 				current_state <= next_state;
 				
-				if current_state = idle and start = '1' then
+				if current_state = idle and start = '1' and counter <= NNN then
+					--We need to check the counter here to ensure there are exactly NNN numbers retrieved and processed.
+					--I put the counter condiction in top for better latency.
+					--Even the readability is not that great, and I'm not sure if it's critical path here.
+					--But there is a commitment, so why not?
 					ctrlOut_reg <= not ctrlOut_reg;
-					--Ctrl1 would be delayed by one cycle, check it later.
+						--Ctrl1 would be delayed by one cycle, check it later.
 				end if;
 			end if;
 		end if;
@@ -406,3 +412,23 @@ end architecture;
 --Modified at 3pm, 12/03/2026:
 --	The counter logic gets corrected, seriously.
 --	Verified by a rough test.
+--
+--Plan for future at 9am, 15/03/2026:
+--	It can be easily observed that the current output data is delayed than the generated one by three processing loops (instead of cycles).
+--		It always a better idea to decouple the data printing and internal processing.
+--		This is actually not that difficult in out design.
+--		I'll give a trial, but maybe not tested today.
+--		If any problems, no heistate reverting from Git.
+--
+--Modified at 10am, 15/03/2026:
+--	The changes corresponding to commitment above is accommopolished.
+--		Not tested fully.
+--	However, another problem is identified:
+--		The counter seems to be inproperly reset for another processing.
+--		I'll montior the finished logic, and counter logic to debug.
+--
+--Modified at 11am,
+--	Problems mentioned above solved.
+--	But now, I want to stall the processing state by three cycles.
+--		Because semantically, it don't need to explicitly go back idle, or response state and do nothing.
+--		This change must be executed very carefully, and may abandon this idea if some error happens.
