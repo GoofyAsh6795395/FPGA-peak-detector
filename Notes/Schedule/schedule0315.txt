@@ -1,0 +1,15 @@
+To reach the next-level.
+
+1. Requirement on report is on page 6, 7, 8 of the university guideline.
+2. Read the file of "copycat" but not intended to be.
+	This will not be uploaded to the well-tracked Github.
+3. Figure out the basic structure of this report and estimate how long it will take.
+4. As for the part of "Contributions":
+	A. Give some thoughts firstly on, what's particular work is invloved.
+		At this stage, AI can assist, no heistate to send them link.
+	B. No need to allocate them at this stage.
+		Maybe make it up?
+5. As for the simulation part.
+	Fork the code and run DP-only sim yourself.
+6. Tell me what's beyond these later.
+		
