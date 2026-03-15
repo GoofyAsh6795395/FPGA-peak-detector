@@ -35,11 +35,13 @@ architecture synth of dataConsume is
 	signal current_state, next_state: stateType := idle;
 
 	signal finished, finished_reg: STD_LOGIC := '1';	--The initial value must be set to 1, it means no work is unfinished without doing any operation.
-	signal NNN, NNN_reg: integer := 0;
+	signal NNN, NNN_reg: integer range 0 to 1000 := 0;
 
-	signal max, max_index: integer := 0;
-	signal max_reg, max_index_reg: integer := 0;
-	signal counter, counter_next: integer := 0;
+	signal max, max_reg: integer range -256 to 255 := 0;
+		--The range is indicated to be exactly same with how large/small a 8 bit 2's complement signed integer could be.
+	signal max_index, max_index_reg: integer range 0 to 1000 := 0;
+	
+	signal counter, counter_next: integer range 0 to 1000 := 0;
 		--Based on the update condition of counter, this signal means which number is currently being processed.
 		--Thus, its valid value ranges from 1, 2, 3, ...., NNN
 
@@ -68,7 +70,7 @@ begin
 
 	integer_to_BCD:
 	process(max_index)
-		variable hundreds, tens, ones: integer := 0;
+		variable hundreds, tens, ones: integer range 0 to 10 := 0;
 		--Used to convert the integer of max index to BCD.
 	begin
 		hundreds := (max_index / 100) mod 10;
@@ -107,13 +109,19 @@ begin
 	--In datapath process, the counter_next, buf_next, result_next, max_reg, finished_reg 
 	datapath:
 	process(current_state, NNN, counter, finished, max, max_index, buf, result, data, numWords_bcd, start, buf_next, max_reg)
-		variable ones, tens, hundreds: integer := 0;
+		variable ones, tens, hundreds: integer range 0 to 10 := 0;
 		--Used to slice the input BCD numwords.
+		variable value_cmp: integer range -256 to 255 := 0;
+		variable vector_append: STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
 	begin
 		--Avoid latch inference.
 		ones := 0;
 		tens := 0;
 		hundreds := 0;
+		
+		value_cmp := 0;
+		vector_append := (others => '0');
+		
 		NNN_reg <= NNN;
 		counter_next <= counter;
 		finished_reg <= finished;
@@ -161,6 +169,18 @@ begin
 			when request => 
 				null;
 			when processing =>
+				
+				--Append the retrieved data or padding value.
+				--Use variable here since it may be used in the same process later, and it's property of immediate update helps.
+				if counter >= 1 and counter <= NNN then
+					vector_append := data;
+				elsif counter > NNN and counter <= (NNN + 3) then
+					vector_append := "10000000";
+				end if;
+				
+				--Use variable here since it may be used in the same process later, and it's property of immediate update helps.
+				value_cmp := to_integer(signed(buf(4)));
+				
 				--Shift the buffer by one.
 				buf_next(0) <= buf(1);
 				buf_next(1) <= buf(2);
@@ -168,38 +188,46 @@ begin
 				buf_next(3) <= buf(4);
 				buf_next(4) <= buf(5);
 				buf_next(5) <= buf(6);
-
-				--Append the retrieved data or padding value.
-				--Based on the value of counter, to find out the current time of iteration.
-				if counter >= 1 and counter <= NNN then
-					buf_next(6) <= data;
-				elsif counter > NNN and counter <= (NNN + 3) then
-					buf_next(6) <= "10000000";
-				end if;
-
-				if counter = (NNN + 3) then
-					--Finished both processing NNN generated data and padding extra 3 ones.
-					finished_reg <= '1';
-				end if;
+				buf_next(6) <= vector_append;
 				
 				--Check if max value is found or not.
 				--Don't check it if counter = (1, 2, 3)
 				--The counter's interval of possible max emerge is from 3 to NNN+3;
 				if counter = 4 then
 					--First number case: initialise everything.
-					max_reg <= to_integer(signed(buf_next(3)));
+					max_reg <= value_cmp;
 					max_index_reg <= 0;
 					--Initialise result buffer and max_value;
 					--What's contained in buf_next: (0, 0, 0, 1st_val, 2nd_val, 3rd_val, 4th_val).
-					result_next <= buf_next;
+					result_next(0) <= buf(1);
+					result_next(1) <= buf(2);
+					result_next(2) <= buf(3);
+					result_next(3) <= buf(4);
+					result_next(4) <= buf(5);
+					result_next(5) <= buf(6);
+					result_next(6) <= vector_append;			
 
 				elsif counter > 4 then
-					if max < signed(buf_next(3)) then
+					if max < value_cmp then
 						--Max value and index should be updated.
-						max_reg <= to_integer(signed(buf_next(3)));
+						max_reg <= value_cmp;
 						max_index_reg <= counter - 4;
-						result_next <= buf_next;
+						
+						--Correspondingly update the result array.
+						result_next(0) <= buf(1);
+						result_next(1) <= buf(2);
+						result_next(2) <= buf(3);
+						result_next(3) <= buf(4);
+						result_next(4) <= buf(5);
+						result_next(5) <= buf(6);
+						result_next(6) <= vector_append;
+						
 					end if;
+				end if;
+				
+				if counter = (NNN + 3) then
+					--Finished both processing NNN generated data and padding extra 3 ones.
+					finished_reg <= '1';
 				end if;
 					
 			when response =>
@@ -427,8 +455,20 @@ end architecture;
 --		The counter seems to be inproperly reset for another processing.
 --		I'll montior the finished logic, and counter logic to debug.
 --
---Modified at 11am,
+--Modified at 11am, 15/03/2026:
 --	Problems mentioned above solved.
 --	But now, I want to stall the processing state by three cycles.
 --		Because semantically, it don't need to explicitly go back idle, or response state and do nothing.
 --		This change must be executed very carefully, and may abandon this idea if some error happens.
+--
+--Modified at 12pm, 15/03/2026:
+--	The classical problem is spotted in datapath process when update buffer.
+--	Since all updates within the same processs will submit the same time after it.
+--		Therefore, it's not a good idea to let those updated signals to involve the later comparsion and assignments in the same process.
+--	Now, corredted by those literally "variables".
+--	I suspect it to effect the actual hardware result without appearing in simulation.
+--		It's better to not verify it myself :)
+--
+--Updated at 12pm, 15/03/2026:
+--	Explicitly indicate the range of every used signal of integer type to control fan in/out.
+--	The hold time slack is now 5.4ns and previouslt is 3.8ns, with a timing constriant of 100 MHZ.
