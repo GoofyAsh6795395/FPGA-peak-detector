@@ -112,6 +112,8 @@ begin
 						next_state <= printP;
 					elsif isL = '1' then
 						next_state <= printL;
+					else
+						next_state <= idle;
 					end if;
 				else
 					next_state <= printData;
@@ -505,4 +507,7 @@ end architecture;
 --		However, seems that the simulation only involve a normal ANNN and corresponding task.
 --		More complex operations, like L command, P command, echo interrupt are scheduled in future.
 --			To test the behaviour under such operations in real hardware.
-
+--
+--Modified on 16/03/2026:
+--	The problem of termination is identified and it's found to be caused by the incomplete state transition logic.
+--	Now corrected and give another trial.
