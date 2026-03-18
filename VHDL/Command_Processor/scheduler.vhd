@@ -35,7 +35,7 @@ entity scheduler is
 end entity;
 
 architecture synth of scheduler is
-	type stateType is (idle, run, printData, printL, printP);
+	type stateType is (idle, run, printData, printL, printP, printCRLF);
 	signal current_state, next_state: stateType := idle;
 	signal NNN_reg: STD_LOGIC_VECTOR(11 downto 0) := (others => '0');
 	signal NNN_int: integer range 0 to 1023 := 0;
@@ -45,9 +45,10 @@ architecture synth of scheduler is
 
 	--The subsequent counters denotes the accumulated times for print to be finished.
 	--Clearly check if there is off-by-one is important.
-	signal counterL: integer range 0 to 20 := 0;
-	signal counterP: integer range 0 to 6 := 0;
-	signal counterData: integer range 0 to 3 := 0;
+	signal counterL: integer range 0 to 21 := 0;
+	signal counterCRLF: integer range 0 to 3 := 0;
+	signal counterP: integer range 0 to 7 := 0;
+	signal counterData: integer range 0 to 4 := 0;
 		--Literally, count the time of print
 		--Automatically reset to 0 once a print task is totally finished, by mod operation.
 		--The range is explicitly given to avoid the waste of resources and optimise fan in/ out.
@@ -108,25 +109,33 @@ begin
 					--If there isn't anything awaiting print, even it should not exist.
 					if finished = '0' then
 						next_state <= run;
-					elsif isP = '1' then
+					else
+						next_state <= printCRLF;
+						--It means now it's going to another stage.
+						--And now, a Cartrige Return is neeeded.
+					end if;
+				else
+					next_state <= printData;
+				end if;
+			when printCRLF =>
+				if counterCRLF = 1 and print_ack = '1' then
+					if isP = '1' then
 						next_state <= printP;
 					elsif isL = '1' then
 						next_state <= printL;
 					else
 						next_state <= idle;
 					end if;
-				else
-					next_state <= printData;
 				end if;
 			when printL =>
 				if counterL = 19 and print_ack = '1' then
-					next_state <= idle;
+					next_state <= printCRLF;
 				else
 					next_state <= printL;
 				end if;
 			when printP =>
 				if counterP = 5 and print_ack = '1' then
-					next_state <= idle;
+					next_state <= printCRLF;
 				else
 					next_state <= printP;
 				end if;
@@ -208,6 +217,20 @@ begin
 					print_req <= '0';
 				end if;
 				
+			when printCRLF =>
+				if printing = '1' then
+					print_req <= '1';	
+					case counterCRLF is
+						when 0 =>
+							data_out <= "00001010";		--LF
+						when 1 =>
+							data_out <= "00001101";		--CR
+						when others =>
+							null;
+					end case;
+				else
+					print_req <= '0';
+				end if;
 			when printL =>
 				if printing = '1' then
 					print_req <= '1';
@@ -308,6 +331,7 @@ begin
 				counterL <= 0;
 				counterP <= 0;
 				counterData <= 0;
+				counterCRLF <= 0;
 				NNN_int <= 0;
 				NNN_reg <= (others => '0');
 				printing <= '0';
@@ -329,6 +353,7 @@ begin
 						counterL <= 0;
 						counterP <= 0;
 						counterData <= 0;
+						counterCRLF <= 0;
 						if isANNN = '1' then
 							--Finished signal does not used anymore after running state
 							--It's a good idea to keep its natural semantics.
@@ -380,7 +405,13 @@ begin
 							printing <= '0';
 							counterData <= (counterData + 1) mod 3;
 						end if;
-
+					when printCRLF =>
+						if printing = '0' then
+							printing <= '1';
+						elsif print_ack = '1' then
+							printing <= '0';
+							counterCRLF <= (counterL + 1) mod 2;
+						end if;
 					when printL =>
 						if printing = '0' then
 							printing <= '1';
@@ -511,3 +542,6 @@ end architecture;
 --Modified on 16/03/2026:
 --	The problem of termination is identified and it's found to be caused by the incomplete state transition logic.
 --	Now corrected and give another trial.
+--
+--New feature at 9am, 18/03/2026:
+--	A new state is introduced for the purpose of printing CRLF.
