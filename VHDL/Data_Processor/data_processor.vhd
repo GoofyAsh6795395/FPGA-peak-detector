@@ -92,7 +92,7 @@ begin
 					next_state <= request;
 				end if;
 			when request =>
-				if (ctrlIn xor ctrlIn_delayed) = '1' then		--It means that ctrl2 is toggled.
+				if (ctrlIn xor ctrlIn_delayed) = '1' or counter > NNN then		--It means that ctrl2 is toggled.
 					next_state <= processing;
 				else
 					next_state <= request;
