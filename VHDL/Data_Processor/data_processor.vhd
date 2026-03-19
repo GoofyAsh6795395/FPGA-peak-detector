@@ -48,6 +48,8 @@ architecture synth of dataConsume is
 	signal ctrlIn_delayed: STD_LOGIC;
 	signal ctrlOut_reg: STD_LOGIC := '0';
 		--To flip ctrl1, a register must be required to store the latest value.
+	signal start_reg: STD_LOGIC := '0';
+	signal data_reg: STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
 
 begin
 	--Always connect the output of ctrl_1 register to port ctrl1.
@@ -88,7 +90,7 @@ begin
 		next_state <= current_state;
 		case current_state is
 			when idle =>
-				if start = '1' then
+				if start_reg = '0' and start = '1' then
 					next_state <= request;
 				end if;
 			when request =>
@@ -175,7 +177,7 @@ begin
 				--Append the retrieved data or padding value.
 				--Use variable here since it may be used in the same process later, and it's property of immediate update helps.
 				if counter >= 0 and counter < NNN then
-					vector_append := data;
+					vector_append := data_reg;
 				elsif counter >= NNN and counter < (NNN + 3) then
 					vector_append := "00000000";
 				end if;
@@ -258,6 +260,9 @@ begin
 				ctrlOut_reg <= '0';
 				seqDone <= '0';
 				
+				start_reg <= '0';
+				data_reg <= (others => '0');
+				
 				max_index <= 0;
 				max <= 0;
 				buf <= (others => (others => '0'));
@@ -274,6 +279,12 @@ begin
 				NNN <= NNN_reg;
 				result <= result_next;
 				current_state <= next_state;
+				
+				start_reg <= start;
+				
+				if current_state = request and next_state = processing then
+					data_reg <= data;
+				end if;
 				
 				if current_state = idle and start = '1' then
 					--This condition will jump in for exactly NNN times and no need to worry about if excessed number are retrieved.
