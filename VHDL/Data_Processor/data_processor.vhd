@@ -57,13 +57,13 @@ begin
 	--Therefore, dataReady should still be 0 for the case when current state is "response" but counter less than 3.
 	byte <= buf(6);
 
-	dataResults(0) <= result(0);
-	dataResults(1) <= result(1);
-	dataResults(2) <= result(2);
+	dataResults(6) <= result(0);
+	dataResults(5) <= result(1);
+	dataResults(4) <= result(2);
 	dataResults(3) <= result(3);
-	dataResults(4) <= result(4);
-	dataResults(5) <= result(5);
-	dataResults(6) <= result(6);
+	dataResults(2) <= result(4);
+	dataResults(1) <= result(5);
+	dataResults(0) <= result(6);
 	--Based on our assignment style of "buf" or "result", it hints that the latest number is stored in 
 	--the final index of this array.
 	--Namely, 
@@ -495,3 +495,7 @@ end architecture;
 --	Now, the seqDone signal will be pull up at the state transition from response to idle.
 --	Also, corrected the maxIndex logic.
 --	By the way, the setup slack is now around 6 ns under a clock period of 10 ns.
+--
+--Updated at 10am, 19/03/2026:
+--	Modify the order of assignment to char_array_type based on the result on borad.
+--	Seems that now it works in order.
