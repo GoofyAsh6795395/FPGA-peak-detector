@@ -55,6 +55,11 @@ architecture synth of scheduler is
 		--Updated in clocked process, and used in state-transition logic & datapath logic
 			--To determine both next state and respective output.
 
+	signal dataResults_reg: STD_LOGIC_VECTOR(55 downto 0) := (others => '0');
+	signal maxIndex_reg: STD_LOGIC_VECTOR(11 downto 0) := (others => '0');
+		--These signals are declaried because, we cannot directly read out what's on the port when needed.
+		--Thus, restore them at right time is essential.
+	
 	signal printing: STD_LOGIC := '0';		
 		--Maintained in clock process but used in datapath to determine the request signal.
 		--If high, means that the request is already sent, reset to 0 until print_ack is captured.
@@ -69,11 +74,6 @@ architecture synth of scheduler is
 
 	signal finished: STD_LOGIC := '0';				
 		--An indicator of seqDone, updated in clock process.
-		
-	signal data_mistake: STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
-	signal mistake: STD_LOGIC := '0';	
-		--An indicator of whether another dataReady is received even I pull down the signal "start."
-		--It's all of the fault of university and such circumstance is definitely not allowed in our data processor design.
 
 begin
 	numWords <= NNN_reg;
@@ -82,7 +82,7 @@ begin
 	--No need to worry about the type of this output because there is another type-conversion wrapper outside.
 
 	state_transition_logic:
-	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, counterCRLF, print_ack, dataReady, mistake)
+	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, counterCRLF, print_ack, dataReady)
 	begin
 		next_state <= current_state;
 		case current_state is
@@ -103,7 +103,7 @@ begin
 				end if;
 			when printData =>
 				--Start state transiton if counter condition is met.
-				if counterData = 2 and print_ack = '1' and mistake = '0' then
+				if counterData = 2 and print_ack = '1'then
 					--This means that two data have already been sent previously, and the latest one just be sent.
 					--So state can be updated to next one now.
 					--If there isn't anything awaiting print, even it should not exist.
@@ -149,7 +149,7 @@ begin
 	--Similar with the process(all) syntax in VHDL-2008, here, I'll manually list all of them to avoid errors.
 	--Same happens below.
 	datapath:
-	process(current_state, dataReady, printing, data, byte, counterL, counterP, counterData, dataResults, maxIndex, mistake, data_mistake)
+	process(current_state, dataReady, printing, data, byte, counterL, counterP, counterData,counterCRLF, dataResults_reg, maxIndex_reg)
 		variable lsb, msb: integer range 0 to 31 := 0;
 		variable lsb_ascii, msb_ascii: integer range 0 to 255 := 0;	--Defined as integer, converted to vector when output.
 		
@@ -165,15 +165,12 @@ begin
 		upper := 0;
 		lower := 0;
 		
-		--Single pulse:
-		start <= '0';
-		
 		case current_state is
 			when idle =>
 				--Operations are listed in clocked signal so here, nothing.
 				null;
 			when run => 
-				start <= '1';
+				null;
 				
 			when printData =>
 				--Request signal follows the printing one, instead of single cycle pulse
@@ -237,11 +234,11 @@ begin
 
 					--Because the output is big endian priority, so index decreases.
 					upper := 55 - counterL * 8;
-					lower := 47 - counterL * 8;
+					lower := 48 - counterL * 8;
 					
 					--Slice.
-					msb := to_integer(unsigned(dataResults(upper downto upper - 3)));
-					lsb := to_integer(unsigned(dataResults(lower + 3 downto lower)));
+					msb := to_integer(unsigned(dataResults_reg(upper downto upper - 3)));
+					lsb := to_integer(unsigned(dataResults_reg(lower + 3 downto lower)));
 
 					--Convert.
 					if msb <= 9 then
@@ -276,8 +273,8 @@ begin
 					print_req <= '1';
 
 					--Read the peak value out.
-					msb := to_integer(unsigned(dataResults(31 downto 28)));
-					lsb := to_integer(unsigned(dataResults(27 downto 24)));
+					msb := to_integer(unsigned(dataResults_reg(31 downto 28)));
+					lsb := to_integer(unsigned(dataResults_reg(27 downto 24)));
 					
 					if msb <= 9 then
 						msb_ascii := msb + 48;
@@ -303,11 +300,11 @@ begin
 							data_out <= "00100000";	
 						when 3 =>
 							--Follow the convention of order, print the MSB, with index range from 11 to 8, at beginning.
-							data_out <= "0011" & maxIndex(11 downto 8);
+							data_out <= "0011" & maxIndex_reg(11 downto 8);
 						when 4 =>
-							data_out <= "0011" & maxIndex(7 downto 4);
+							data_out <= "0011" & maxIndex_reg(7 downto 4);
 						when 5 =>
-							data_out <= "0011" & maxIndex(3 downto 0);
+							data_out <= "0011" & maxIndex_reg(3 downto 0);
 						when others =>
 							null;
 					end case;
@@ -318,7 +315,7 @@ begin
 	end process;
 
 	control:
-	process(clk, reset, isANNN, seqDone, printing, print_ack, finished, mistake)
+	process(clk, reset, isANNN, seqDone, printing, print_ack, finished)
 		variable hundreds, tens, ones: integer range 0 to 9 := 0;
 	begin
 		hundreds := 0;
@@ -336,16 +333,32 @@ begin
 				NNN_reg <= (others => '0');
 				printing <= '0';
 				data <= (others => '0');
+				dataResults_reg <= (others => '0');
+				maxIndex_reg <= (others => '0');
 				current_state <= idle;
-				data_mistake <= (others => '0');
-				mistake <= '0';
+				
+				start <= '0';
 				
 			else
 				current_state <= next_state;
 				if seqDone = '1' then
 					finished <= '1';
-					--Keep high after seqDone appears, reset until idle.
+						--Keep high after seqDone appears, reset until idle.
+					dataResults_reg <= dataResults;
+					maxIndex_reg <= maxIndex;
+						--Store those values in case that it disappears later.
 				end if;
+
+				if (current_state = idle and isANNN = '1') or (current_state = printData and next_state = run) then
+					--This long condition above means, the state transition happens and the target is "run".
+					--So at this moment, we need to give out a start signal to data processor.
+					--Start signal is assigned here to keep the property of single cycle.
+					--Even though we don't need to register it, but the clock process is effective to deal with such requirement.
+					start <= '1';
+				else
+					start <= '0';
+				end if;
+
 
 				case current_state is
 					when idle =>
@@ -379,24 +392,6 @@ begin
 						end if;
 					
 					when printData =>
-						if dataReady = '1' then
-							--It means that another dataReady is received while printing current data.
-							--It's regarded as a mistake caused by universities' trash data processor
-							--To deal with it, use a flag and a temporary register to capture the wrong byte input.
-							--In case that it is dumped by mistake.
-							mistake <= '1';
-							data_mistake <= byte;
-						end if;
-						
-						if print_ack = '1' and counterData = 2 and mistake = '1' then
-							--It means that three ascii code has been already sent and mistake happens.
-							--In this scenario, the right generated data is fully printed.
---							--And there is another wrong one but still requires printing out.
-							
-							data <= data_mistake;
-							mistake <= '0';
-						end if;
-						
 						if printing = '0' then
 							--When counter condition is satifsied, the state should be transferred to next one.
 							--So don't worry if the printing flag is set wrong.
@@ -545,3 +540,9 @@ end architecture;
 --
 --New feature at 9am, 18/03/2026:
 --	A new state is introduced for the purpose of printing CRLF.
+--
+--Modification on 19/03/06:
+--	Adjust the start logic so that it's now a strict single cycle pulse
+--		And the bonus is, the dataConsume from university will not repeatly retrieve new values;
+--	So, another modification is, removing the whole mistake logic, there should not.
+--	The problem of LSB slice of L command is spotted from board test and the boundary is corrected.

@@ -177,7 +177,7 @@ begin
 				if counter >= 0 and counter < NNN then
 					vector_append := data;
 				elsif counter >= NNN and counter < (NNN + 3) then
-					vector_append := "10000000";
+					vector_append := "00000000";
 				end if;
 				
 				--Use variable here since it may be used in the same process later, and it's property of immediate update helps.
