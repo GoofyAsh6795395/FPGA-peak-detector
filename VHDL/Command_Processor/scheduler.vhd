@@ -69,11 +69,6 @@ architecture synth of scheduler is
 
 	signal finished: STD_LOGIC := '0';				
 		--An indicator of seqDone, updated in clock process.
-		
-	signal data_mistake: STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
-	signal mistake: STD_LOGIC := '0';	
-		--An indicator of whether another dataReady is received even I pull down the signal "start."
-		--It's all of the fault of university and such circumstance is definitely not allowed in our data processor design.
 
 begin
 	numWords <= NNN_reg;
@@ -82,7 +77,7 @@ begin
 	--No need to worry about the type of this output because there is another type-conversion wrapper outside.
 
 	state_transition_logic:
-	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, counterCRLF, print_ack, dataReady, mistake)
+	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, counterCRLF, print_ack, dataReady)
 	begin
 		next_state <= current_state;
 		case current_state is
@@ -103,7 +98,7 @@ begin
 				end if;
 			when printData =>
 				--Start state transiton if counter condition is met.
-				if counterData = 2 and print_ack = '1' and mistake = '0' then
+				if counterData = 2 and print_ack = '1'then
 					--This means that two data have already been sent previously, and the latest one just be sent.
 					--So state can be updated to next one now.
 					--If there isn't anything awaiting print, even it should not exist.
@@ -149,7 +144,7 @@ begin
 	--Similar with the process(all) syntax in VHDL-2008, here, I'll manually list all of them to avoid errors.
 	--Same happens below.
 	datapath:
-	process(current_state, dataReady, printing, data, byte, counterL, counterP, counterData, dataResults, maxIndex, mistake, data_mistake)
+	process(current_state, dataReady, printing, data, byte, counterL, counterP, counterData,counterCRLF, dataResults, maxIndex)
 		variable lsb, msb: integer range 0 to 31 := 0;
 		variable lsb_ascii, msb_ascii: integer range 0 to 255 := 0;	--Defined as integer, converted to vector when output.
 		
@@ -165,15 +160,12 @@ begin
 		upper := 0;
 		lower := 0;
 		
-		--Single pulse:
-		start <= '0';
-		
 		case current_state is
 			when idle =>
 				--Operations are listed in clocked signal so here, nothing.
 				null;
 			when run => 
-				start <= '1';
+				null;
 				
 			when printData =>
 				--Request signal follows the printing one, instead of single cycle pulse
@@ -318,7 +310,7 @@ begin
 	end process;
 
 	control:
-	process(clk, reset, isANNN, seqDone, printing, print_ack, finished, mistake)
+	process(clk, reset, isANNN, seqDone, printing, print_ack, finished)
 		variable hundreds, tens, ones: integer range 0 to 9 := 0;
 	begin
 		hundreds := 0;
@@ -337,8 +329,8 @@ begin
 				printing <= '0';
 				data <= (others => '0');
 				current_state <= idle;
-				data_mistake <= (others => '0');
-				mistake <= '0';
+				
+				start <= '0';
 				
 			else
 				current_state <= next_state;
@@ -346,6 +338,17 @@ begin
 					finished <= '1';
 					--Keep high after seqDone appears, reset until idle.
 				end if;
+
+				if (current_state = idle and isANNN = '1') or (current_state = printData and next_state = run) then
+					--This long condition above means, the state transition happens and the target is "run".
+					--So at this moment, we need to give out a start signal to data processor.
+					--Start signal is assigned here to keep the property of single cycle.
+					--Even though we don't need to register it, but the clock process is effective to deal with such requirement.
+					start <= '1';
+				else
+					start <= '0';
+				end if;
+
 
 				case current_state is
 					when idle =>
@@ -379,24 +382,6 @@ begin
 						end if;
 					
 					when printData =>
-						if dataReady = '1' then
-							--It means that another dataReady is received while printing current data.
-							--It's regarded as a mistake caused by universities' trash data processor
-							--To deal with it, use a flag and a temporary register to capture the wrong byte input.
-							--In case that it is dumped by mistake.
-							mistake <= '1';
-							data_mistake <= byte;
-						end if;
-						
-						if print_ack = '1' and counterData = 2 and mistake = '1' then
-							--It means that three ascii code has been already sent and mistake happens.
-							--In this scenario, the right generated data is fully printed.
---							--And there is another wrong one but still requires printing out.
-							
-							data <= data_mistake;
-							mistake <= '0';
-						end if;
-						
 						if printing = '0' then
 							--When counter condition is satifsied, the state should be transferred to next one.
 							--So don't worry if the printing flag is set wrong.
