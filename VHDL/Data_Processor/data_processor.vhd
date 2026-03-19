@@ -55,7 +55,6 @@ begin
 
 	--Whether the data on byte port should be received by down-stream or not is determined by dataReady signal.
 	--Therefore, dataReady should still be 0 for the case when current state is "response" but counter less than 3.
-	byte <= buf(6);
 
 	dataResults(6) <= result(0);
 	dataResults(5) <= result(1);
@@ -257,7 +256,8 @@ begin
 				ctrlIn_delayed <= '0';
 				ctrlOut_reg <= '0';
 				seqDone <= '0';
-				
+
+				byte <= (others => '0');
 				max_index <= 0;
 				max <= 0;
 				buf <= (others => (others => '0'));
@@ -275,6 +275,11 @@ begin
 				result <= result_next;
 				current_state <= next_state;
 				
+				if counter >= 0 and counter <= NNN then
+					byte <= buf(6);
+				end if;
+				
+				
 				if current_state = idle and start = '1' then
 					--This condition will jump in for exactly NNN times and no need to worry about if excessed number are retrieved.
 					--Therefore, remove the NNN judgement.
@@ -283,7 +288,7 @@ begin
 				end if;
 				if current_state = response and finished = '1' then
 					--Pull up seqDone signal here, very weird, but it's the requirement of university.
-					--Sun of beach, not elegant at all.
+					--Sun of beach, not elegant at all.				
 					seqDone <= '1';
 				else
 					seqDone <= '0';
@@ -499,3 +504,8 @@ end architecture;
 --Updated at 10am, 19/03/2026:
 --	Modify the order of assignment to char_array_type based on the result on borad.
 --	Seems that now it works in order.
+--
+--Updated at 9pm, 19/03/2026:
+--	Treat the byte signal as the output of a register and hold it at the end of one processing cycle.
+--		Thus, the downstream university's cmdProc would work as expected and hope ours is not effected.
+--	Also, those internal changes for the purpose of debugging is removed to keep my code elegant.
