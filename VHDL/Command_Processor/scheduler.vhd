@@ -82,7 +82,7 @@ begin
 	--No need to worry about the type of this output because there is another type-conversion wrapper outside.
 
 	state_transition_logic:
-	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, print_ack, dataReady, mistake)
+	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, counterCRLF, print_ack, dataReady, mistake)
 	begin
 		next_state <= current_state;
 		case current_state is
