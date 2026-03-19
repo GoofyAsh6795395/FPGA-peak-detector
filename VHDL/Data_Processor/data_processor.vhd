@@ -92,7 +92,7 @@ begin
 					next_state <= request;
 				end if;
 			when request =>
-				if (ctrlIn xor ctrlIn_delayed) = '1' or counter > NNN then		--It means that ctrl2 is toggled.
+				if (ctrlIn xor ctrlIn_delayed) = '1' then		--It means that ctrl2 is toggled.
 					next_state <= processing;
 				else
 					next_state <= request;
@@ -143,14 +143,13 @@ begin
 		
 		--For single cycle pulse, namely, pull down if a certain condition is not met.
 		dataReady <= '0';
-		seqDone <= '0';
 		
 		case current_state is
 			--Explicitly indicating the behaviour under other state is also required.
 			--To satisfy the syntax check, use "null";
 			when idle =>
-				if start = '1' then
-					if finished = '1' then
+				if finished = '1' then
+					if start = '1' then
 						--This means that, the last cycle is end and now a new NNN cycle starts.
 						finished_reg <= '0';
 
@@ -167,7 +166,6 @@ begin
 						tens := to_integer(unsigned(numWords_bcd(1)));
 						ones := to_integer(unsigned(numWords_bcd(0)));
 						NNN_reg <= (hundreds * 100 + tens * 10 + ones);
-
 					end if;
 				end if;
 			when request => 
@@ -215,7 +213,7 @@ begin
 					if max < value_cmp then
 						--Max value and index should be updated.
 						max_reg <= value_cmp;
-						max_index_reg <= counter - 4;
+						max_index_reg <= counter - 3;
 						
 						--Correspondingly update the result array.
 						result_next(0) <= buf(1);
@@ -244,9 +242,6 @@ begin
 				--It means that waht's currently on the port "byte" is the actual generated value.
 					dataReady <= '1';
 				end if;
-				if finished = '1' then
-					seqDone <= '1';
-				end if;
 		end case;
 	end process;
 		
@@ -261,6 +256,7 @@ begin
 				counter <= 0;
 				ctrlIn_delayed <= '0';
 				ctrlOut_reg <= '0';
+				seqDone <= '0';
 				
 				max_index <= 0;
 				max <= 0;
@@ -284,6 +280,13 @@ begin
 					--Therefore, remove the NNN judgement.
 					ctrlOut_reg <= not ctrlOut_reg;
 						--Ctrl1 would be delayed by one cycle, check it later.
+				end if;
+				if current_state = response and finished = '1' then
+					--Pull up seqDone signal here, very weird, but it's the requirement of university.
+					--Sun of beach, not elegant at all.
+					seqDone <= '1';
+				else
+					seqDone <= '0';
 				end if;
 			end if;
 		end if;
@@ -484,3 +487,11 @@ end architecture;
 --	Totally refine the counter logic, from semantic, to those logic associated with.
 --	Now, counter augments uniformally at processing stage, and used in the state of response for the purpose of state transition.
 --	Untested.
+--
+--Updated at 9am, 19/03/2026:
+--	Problem identified from simulation with testbench from university.
+--	It's not our responsibility, however, we need to modify our design to meet their wrong testbench.
+--		If we don't, they will totally stop the clock and we can do nothing beyond getting stuck.
+--	Now, the seqDone signal will be pull up at the state transition from response to idle.
+--	Also, corrected the maxIndex logic.
+--	By the way, the setup slack is now around 6 ns under a clock period of 10 ns.
