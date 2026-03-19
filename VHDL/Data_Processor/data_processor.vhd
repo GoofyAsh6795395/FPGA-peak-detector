@@ -504,3 +504,8 @@ end architecture;
 --Updated at 10am, 19/03/2026:
 --	Modify the order of assignment to char_array_type based on the result on borad.
 --	Seems that now it works in order.
+--
+--Updated at 9pm, 19/03/2026:
+--	Treat the byte signal as the output of a register and hold it at the end of one processing cycle.
+--		Thus, the downstream university's cmdProc would work as expected and hope ours is not effected.
+--	Also, those internal changes for the purpose of debugging is removed to keep my code elegant.
