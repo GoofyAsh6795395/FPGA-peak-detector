@@ -92,15 +92,24 @@ begin
 					next_state <= request;
 				end if;
 			when request =>
-				if (ctrlIn xor ctrlIn_delayed) = '1' then		--It means that ctrl2 is toggled.
+				if (ctrlIn xor ctrlIn_delayed) = '1' or counter > NNN then		--It means that ctrl2 is toggled.
 					next_state <= processing;
 				else
 					next_state <= request;
 				end if;
 			when processing =>
 				next_state <= response;
+				--Unconditionally transfer to response state.
+				--Since a respective operation must be conducted after one processing logic.
 			when response =>
-				next_state <= idle;
+				--The counter here has a steady value, just use it.
+				if counter >= NNN and counter < (NNN + 3) then
+					--This means, retrieve number is finished and now, 
+					--We cannot go back to idle state, instead, stall at processing state for three cycles.
+					next_state <= processing;
+				else
+					next_state <= idle;
+				end if;
 			when others =>
 				next_state <= idle;
 		end case;
@@ -141,16 +150,13 @@ begin
 			--To satisfy the syntax check, use "null";
 			when idle =>
 				if start = '1' then
-					   --Update before actual manipulation happens, thus, the boundary should be correspondingly changes.
-					   --Likewise, ++i, rather than i++;
 					if finished = '1' then
-						--This means that, the last cycle is end and now a new cycle start.
+						--This means that, the last cycle is end and now a new NNN cycle starts.
 						finished_reg <= '0';
 
 						--Flush the stored data
-						counter_next <= 1;			
-							--Very important an initial condition.
-							--Not 0, but 1.
+						counter_next <= 0;			
+							--Initialise the counter
 						max_reg <= 0;
 						max_index_reg <= 0;
 						result_next <= (others => (others => '0'));
@@ -161,9 +167,7 @@ begin
 						tens := to_integer(unsigned(numWords_bcd(1)));
 						ones := to_integer(unsigned(numWords_bcd(0)));
 						NNN_reg <= (hundreds * 100 + tens * 10 + ones);
-					else
-						counter_next <= counter + 1;
-						--This branch means now it's now the first case when NNN loops start.
+
 					end if;
 				end if;
 			when request => 
@@ -172,9 +176,9 @@ begin
 				
 				--Append the retrieved data or padding value.
 				--Use variable here since it may be used in the same process later, and it's property of immediate update helps.
-				if counter >= 1 and counter <= NNN then
+				if counter >= 0 and counter < NNN then
 					vector_append := data;
-				elsif counter > NNN and counter <= (NNN + 3) then
+				elsif counter >= NNN and counter < (NNN + 3) then
 					vector_append := "10000000";
 				end if;
 				
@@ -193,7 +197,7 @@ begin
 				--Check if max value is found or not.
 				--Don't check it if counter = (1, 2, 3)
 				--The counter's interval of possible max emerge is from 3 to NNN+3;
-				if counter = 4 then
+				if counter = 3 then
 					--First number case: initialise everything.
 					max_reg <= value_cmp;
 					max_index_reg <= 0;
@@ -207,7 +211,7 @@ begin
 					result_next(5) <= buf(6);
 					result_next(6) <= vector_append;			
 
-				elsif counter > 4 then
+				elsif counter > 3 then
 					if max < value_cmp then
 						--Max value and index should be updated.
 						max_reg <= value_cmp;
@@ -221,17 +225,22 @@ begin
 						result_next(4) <= buf(5);
 						result_next(5) <= buf(6);
 						result_next(6) <= vector_append;
-						
 					end if;
 				end if;
 				
-				if counter = (NNN + 3) then
+				if counter = (NNN + 2) then
 					--Finished both processing NNN generated data and padding extra 3 ones.
 					finished_reg <= '1';
 				end if;
-					
+				
+				counter_next <= counter + 1;
+					--Update the counter at last to avoid the glitches.
+					--And, it's new value cannot be read out in upcoming state transition.	
+					--Update after actual manipulation happens, thus, the boundary should be correspondingly changes.
+					--Likewise, i++, rather than ++i;				
+
 			when response =>
-				if counter >= 1 and counter <= NNN then
+				if counter <= NNN then
 				--It means that waht's currently on the port "byte" is the actual generated value.
 					dataReady <= '1';
 				end if;
@@ -270,11 +279,9 @@ begin
 				result <= result_next;
 				current_state <= next_state;
 				
-				if current_state = idle and start = '1' and counter <= NNN then
-					--We need to check the counter here to ensure there are exactly NNN numbers retrieved and processed.
-					--I put the counter condiction in top for better latency.
-					--Even the readability is not that great, and I'm not sure if it's critical path here.
-					--But there is a commitment, so why not?
+				if current_state = idle and start = '1' then
+					--This condition will jump in for exactly NNN times and no need to worry about if excessed number are retrieved.
+					--Therefore, remove the NNN judgement.
 					ctrlOut_reg <= not ctrlOut_reg;
 						--Ctrl1 would be delayed by one cycle, check it later.
 				end if;
@@ -472,3 +479,8 @@ end architecture;
 --Updated at 12pm, 15/03/2026:
 --	Explicitly indicate the range of every used signal of integer type to control fan in/out.
 --	The hold time slack is now 5.4ns and previouslt is 3.8ns, with a timing constriant of 100 MHZ.
+--
+--Corrections at 8am, 19/03/2026:
+--	Totally refine the counter logic, from semantic, to those logic associated with.
+--	Now, counter augments uniformally at processing stage, and used in the state of response for the purpose of state transition.
+--	Untested.
