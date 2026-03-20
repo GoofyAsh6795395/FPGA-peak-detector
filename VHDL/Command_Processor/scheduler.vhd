@@ -35,18 +35,24 @@ entity scheduler is
 end entity;
 
 architecture synth of scheduler is
-	type stateType is (idle, run, printData, printL, printP, printDelim);
+	type stateType is (idle, run, printData, printL, printP, printSep);
 	signal current_state, next_state: stateType := idle;
+
+	--What's below are the declariation of signals that are used to capture the input ports.
 	signal NNN_reg: STD_LOGIC_VECTOR(11 downto 0) := (others => '0');
-	signal NNN_int: integer range 0 to 1023 := 0;
-		--Hold the received NNN from parser.
-		--This is a integer instead of vector, 
-		--Managed in clock process with conditon that state is idle and isANNN is received.
+	signal data: STD_LOGIC_VECTOR(7 downto 0);		
+		--It's binary sequence, same with byte, maintained in datapath process.
+	signal NNN_pending, P_pending, L_pending: STD_LOGIC := '0';
+		--These indicators above are the stirky flag of the input isANNN, isL, isP
+	signal dataResults_reg: STD_LOGIC_VECTOR(55 downto 0) := (others => '0');
+	signal maxIndex_reg: STD_LOGIC_VECTOR(11 downto 0) := (others => '0');
+		--These signals are declaried because, we cannot directly read out what's on the port when needed.
+		--Thus, restore them at right time is essential.
 
 	--The subsequent counters denotes the accumulated times for print to be finished.
 	--Clearly check if there is off-by-one is important.
 	signal counterL: integer range 0 to 21 := 0;
-	signal counterDelim: integer range 0 to 10 := 0;
+	signal counterSep: integer range 0 to 10 := 0;
 	signal counterP: integer range 0 to 7 := 0;
 	signal counterData: integer range 0 to 4 := 0;
 		--Literally, count the time of print
@@ -55,11 +61,7 @@ architecture synth of scheduler is
 		--Updated in clocked process, and used in state-transition logic & datapath logic
 			--To determine both next state and respective output.
 
-	signal dataResults_reg: STD_LOGIC_VECTOR(55 downto 0) := (others => '0');
-	signal maxIndex_reg: STD_LOGIC_VECTOR(11 downto 0) := (others => '0');
-		--These signals are declaried because, we cannot directly read out what's on the port when needed.
-		--Thus, restore them at right time is essential.
-	
+	--The signals below are statistics used to track the state of the system.
 	signal printing: STD_LOGIC := '0';		
 		--Maintained in clock process but used in datapath to determine the request signal.
 		--If high, means that the request is already sent, reset to 0 until print_ack is captured.
@@ -68,13 +70,8 @@ architecture synth of scheduler is
 			--The state transition happens in parllel
 			--So no need to worry about if it will be pull up again by accident.
 			--Also, the request signal should not be triggered.
-
-	signal data: STD_LOGIC_VECTOR(7 downto 0);		
-		--It's binary sequence, same with byte, maintained in datapath process.
-
 	signal finished: STD_LOGIC := '0';				
 		--An indicator of seqDone, updated in clock process.
-	signal NNN_pending, P_pending, L_pending: STD_LOGIC := '0';
 
 begin
 	numWords <= NNN_reg;
@@ -83,13 +80,13 @@ begin
 	--No need to worry about the type of this output because there is another type-conversion wrapper outside.
 
 	state_transition_logic:
-	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, counterDelim, print_ack, dataReady, NNN_pending, L_pending, P_pending)
+	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, counterSep, print_ack, dataReady, NNN_pending, L_pending, P_pending)
 	begin
 		next_state <= current_state;
 		case current_state is
 			when idle => 
 				if isANNN = '1' or isP = '1' or isL = '1' then
-					next_state <= printDelim;
+					next_state <= printSep;
 				end if;
 			when run =>
 				if dataReady = '1' then
@@ -106,15 +103,15 @@ begin
 					if finished = '0' then
 						next_state <= run;
 					else
-						next_state <= printDelim;
+						next_state <= printSep;
 						--It means now it's going to another stage.
 						--And now, a Cartrige Return is neeeded.
 					end if;
 				else
 					next_state <= printData;
 				end if;
-			when printDelim =>
-				if counterDelim = 9 and print_ack = '1' then
+			when printSep =>
+				if counterSep = 9 and print_ack = '1' then
 					--Assume the upstream isANNN, isL, isP is one hot.
 					if NNN_pending = '1' then
 						--It means now, we finished printing the delimiter and should take actions on upcoming NNN command.
@@ -129,13 +126,13 @@ begin
 				end if;
 			when printL =>
 				if counterL = 19 and print_ack = '1' then
-					next_state <= printDelim;
+					next_state <= printSep;
 				else
 					next_state <= printL;
 				end if;
 			when printP =>
 				if counterP = 5 and print_ack = '1' then
-					next_state <= printDelim;
+					next_state <= printSep;
 				else
 					next_state <= printP;
 				end if;
@@ -148,14 +145,15 @@ begin
 	--I don't want to waste my time figuring out waht's contained in the sensitivity list.
 	--Similar with the process(all) syntax in VHDL-2008, here, I'll manually list all of them to avoid errors.
 	--Same happens below.
-	datapath:
-	process(current_state, dataReady, printing, data, byte, counterL, counterP, counterData,counterDelim, dataResults_reg, maxIndex_reg)
+	print_logic:
+	process(current_state, dataReady, printing, data, byte, counterL, counterP, counterData,counterSep, dataResults_reg, maxIndex_reg)
+		--Basically, what's maintained in this process here is the print request and what's contained on the corresponding datapath.
 		variable lsb, msb: integer range 0 to 31 := 0;
 		variable lsb_ascii, msb_ascii: integer range 0 to 255 := 0;	--Defined as integer, converted to vector when output.
 		variable upper, lower: integer range 0 to 55 := 0;		--For L command to slice the required pieces.
 	begin
-		--Voltage level, but avoid latch inferrence.
-		data_out <= (others => '0');
+		--Voltage levels, but avoid latch inferrence.
+		data_out <= (others => '0');	--Even though it's a port here, could also be defined to be the output of latch if assigned improperly.
 		print_req <= '0';
 		lsb := 0;
 		msb := 0;
@@ -165,11 +163,26 @@ begin
 		lower := 0;
 		
 		case current_state is
-			when idle =>
-				--Operations are listed in clocked signal so here, nothing.
-				null;
-			when run => 
-				null;
+			when printSep =>
+				if printing = '1' then
+					print_req <= '1';	
+					case counterSep is
+						when 0 =>
+							data_out <= "00001010";		--LF
+						when 1 =>
+							data_out <= "00001101";		--CR
+						when 2 to 7 =>
+							data_out <= "00111101";		--Delimiters
+						when 8 =>
+							data_out <= "00001010";		--LF
+						when 9 =>
+							data_out <= "00001101";		--CR
+						when others => 
+							null;
+					end case;
+				else
+					print_req <= '0';
+				end if;
 				
 			when printData =>
 				--Request signal follows the printing one, instead of single cycle pulse
@@ -206,33 +219,13 @@ begin
 							data_out <= std_logic_vector(to_unsigned(lsb_ascii, 8));
 						when 2 =>
 							data_out <= "00100000";		--Ascii code of " " 
-						when others =>
+						when others => 
 							null;
 					end case;
 				else
 					print_req <= '0';
 				end if;
 				
-			when printDelim =>
-				if printing = '1' then
-					print_req <= '1';	
-					case counterDelim is
-						when 0 =>
-							data_out <= "00001010";		--LF
-						when 1 =>
-							data_out <= "00001101";		--CR
-						when 2 to 7 =>
-							data_out <= "00111101";		--Delimiters
-						when 8 =>
-							data_out <= "00001010";		--LF
-						when 9 =>
-							data_out <= "00001101";		--CR
-						when others =>
-							null;
-					end case;
-				else
-					print_req <= '0';
-				end if;
 			when printL =>
 				if printing = '1' then
 					print_req <= '1';
@@ -294,7 +287,7 @@ begin
 					end if;
 
 					--Hint: the BCD encoding gives the same last 4 bits with ASCii
-					--Therefore, directly use combine operator to form the output Ascii code.
+					--Therefore, we'll directly use combine operator to form the output Ascii code.
 					--Prefix is "0011", observed from table.
 					case counterP is
 						when 0 =>
@@ -316,49 +309,41 @@ begin
 				else
 					print_req <= '0';
 				end if;
+			when others =>
+				null;
 		end case;
 	end process;
 
-	control:
-	process(clk, reset, isANNN, seqDone, printing, print_ack, finished)
-		variable hundreds, tens, ones: integer range 0 to 9 := 0;
+
+	stable_logic:
+	process(clk, reset, current_state, NNN, isL, isP, isANNN, L_pending, P_pending, NNN_pending, byte, seqDone, dataResults, maxIndex)
+		--This process aims to make this system stable and robust against fragile voltage level signals.
+		--The methodology is, to capture the input immediately if conditions are satisfied.
+		--Also, if no requirement on clock cycle, some ports can be defined to be the output of registers.
 	begin
-		hundreds := 0;
-		tens := 0;
-		ones := 0;         --To avoid latch inference
-	
 		if rising_edge(clk) then
 			if reset = '1' then
-				finished <= '0';
-				counterL <= 0;
-				counterP <= 0;
-				counterData <= 0;
-				counterDelim <= 0;
-				NNN_int <= 0;
-				NNN_reg <= (others => '0');
-				printing <= '0';
+				--Capture the input stuff.
 				data <= (others => '0');
 				dataResults_reg <= (others => '0');
 				maxIndex_reg <= (others => '0');
-				current_state <= idle;
+				NNN_reg <= (others => '0');
 				
-				start <= '0';
-				
+				--Flags of input:
 				L_pending <= '0';
 				P_pending <= '0';
 				NNN_pending <= '0';
 				
+				--Output
+				start <= '0';
 			else
-				current_state <= next_state;
 				if seqDone = '1' then
-					finished <= '1';
-						--Keep high after seqDone appears, reset until idle.
 					dataResults_reg <= dataResults;
 					maxIndex_reg <= maxIndex;
 						--Store those values in case that it disappears later.
 				end if;
-
-				if (current_state = printDelim and next_state = run) or (current_state = printData and next_state = run) then
+				
+				if (current_state = printSep and next_state = run) or (current_state = printData and next_state = run) then
 					--This long condition above means, the state transition happens and the target is "run".
 					--So at this moment, we need to give out a start signal to data processor.
 					--Start signal is assigned here to keep the property of single cycle.
@@ -367,8 +352,34 @@ begin
 				else
 					start <= '0';
 				end if;
-
-				if current_state = printDelim and counterDelim = 9 and print_ack = '1' then
+				
+				if current_state = run and dataReady = '1' then
+					--Immediately store the byte signal once it's ready.
+					data <= byte;
+				end if;
+				
+				if current_state = idle then
+					if isANNN = '1' then
+						--Finished signal does not used anymore after running state
+						--It's a good idea to keep its natural semantics.
+						--So pull down if next ANNN cycle starts.
+						--Also, because while NNN data is not finished, it will not turn to idle state
+						--So no need to worry if this clean operation will interrupt NNN iterations.
+						NNN_pending <= '1';
+						NNN_reg <= NNN;			--Capture the NNN into a register to avoid it changing later.
+					end if;
+						
+					if isP = '1' then
+						--Reserve this signal if detected because it's a single cycle pulse and will not be used immediately for state transition
+						P_pending <= '1';
+					end if;
+						
+					if isL = '1' then
+						L_pending <= '1';
+					end if;
+				end if;
+				
+				if current_state = printSep and counterSep = 9 and print_ack = '1' then
 					--Assume the upstream isANNN, isL, isP is one hot.
 					if NNN_pending = '1' then
 						--This means, this NNN request is going to be consumed after this condition.
@@ -379,48 +390,51 @@ begin
 						L_pending <= '0';
 					end if;
 				end if;
+				
+			end if;
+		end if;
+	end process;
+	
 
+	statistics_logic:
+	process(clk, reset, current_state, isANNN, seqDone, printing, print_ack)
+	begin
+		if rising_edge(clk) then
+			if reset = '1' then
+				--Counters:
+				counterL <= 0;
+				counterP <= 0;
+				counterData <= 0;
+				counterSep <= 0;
+				
+				--Other statistics:
+				current_state <= idle;
+				finished <= '0';
+				printing <= '0';
+			else
+				current_state <= next_state;
+			
+				if current_state = idle and isANNN = '1' then
+					finished <= '0';
+				elsif seqDone = '1' then
+					--I use the if-elsif chain because there is a probability when 
+					--these two conditions are satisfied at the same time.
+					--This style, compare to if-if, is safer, and more robust against some small problems.
+					--Also have a reasonable readability.
+					finished <= '1';		--Keep high after seqDone appears, reset until idle.
+				end if;
+				
 				case current_state is
 					when idle =>
 						--Flush
 						counterL <= 0;
 						counterP <= 0;
 						counterData <= 0;
-						counterDelim <= 0;
-						if isANNN = '1' then
-							--Finished signal does not used anymore after running state
-							--It's a good idea to keep its natural semantics.
-							--So pull down if next ANNN cycle starts.
-							--Also, because while NNN data is not finished, it will not turn to idle state
-							--So no need to worry if this clean operation will interrupt NNN iterations.
-							finished <= '0';
-							NNN_reg <= NNN;
-							--Capture the NNN into a register to avoid it changing later.
-
-							--Convert BCD to integer, then hold this value to control iteration times.
-							hundreds := to_integer(unsigned(NNN(11 downto 8)));
-							tens := to_integer(unsigned(NNN(7 downto 4)));
-							ones := to_integer(unsigned(NNN(3 downto 0)));
-					
-							NNN_int <= hundreds * 100 + tens * 10 + ones;
-							NNN_pending <= '1';
-						end if;
-						
-						if isP = '1' then
-							P_pending <= '1';
-						end if;
-						
-						if isL = '1' then
-							L_pending <= '1';
-						end if;
-						
-					when run =>
-						if dataReady = '1' then
-							--Immediately store the byte signal once it's ready.
-							data <= byte;
-						end if;
-					
+						counterSep <= 0;
 					when printData =>
+						--The statements below are similar with each other beyond the augment logic.
+						--Because they share the same printing procedure, which is, request -> acknowledged.
+						--List them here is for readability, maintance and avoid uncessary latency for those fancy writing style.
 						if printing = '0' then
 							--When counter condition is satifsied, the state should be transferred to next one.
 							--So don't worry if the printing flag is set wrong.
@@ -429,12 +443,12 @@ begin
 							printing <= '0';
 							counterData <= (counterData + 1) mod 3;
 						end if;
-					when printDelim =>
+					when printSep =>
 						if printing = '0' then
 							printing <= '1';
 						elsif print_ack = '1' then
 							printing <= '0';
-							counterDelim <= (counterDelim + 1) mod 10;
+							counterSep <= (counterSep + 1) mod 10;
 						end if;
 					when printL =>
 						if printing = '0' then
@@ -452,8 +466,7 @@ begin
 							counterP <= (counterP + 1) mod 6;
 							--two digit for value, one for space, three for indices, so maximum value of this counter is 6.
 						end if;
-					when others =>
-						null;
+					when others => null;
 				end case;
 			end if;
 		end if;
@@ -583,3 +596,9 @@ end architecture;
 --
 --New function at 3pm, at 20/03/2026:
 --	Now it can fully print the delimiter.
+--
+--Tidy at 11pm, at 20/03/2026:
+--	I have write another separated clocking process, 
+--		And now, one is for the register of the statistics of this system.
+--		What's contained in the another one are, registered ports.
+--	The problem of the sequence of assignment of finished signal within the same process is identified and solved.
