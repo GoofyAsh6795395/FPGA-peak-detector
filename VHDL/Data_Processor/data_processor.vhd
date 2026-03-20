@@ -141,7 +141,7 @@ begin
 		result_next <= result;
 		
 		--For single cycle pulse, namely, pull down if a certain condition is not met.
-		dataReady <= '0';
+		--dataReady <= '0';
 		
 		case current_state is
 			--Explicitly indicating the behaviour under other state is also required.
@@ -237,10 +237,11 @@ begin
 					--Likewise, i++, rather than ++i;				
 
 			when response =>
-				if counter <= NNN then
-				--It means that waht's currently on the port "byte" is the actual generated value.
-					dataReady <= '1';
-				end if;
+				null;
+				--if counter <= NNN then
+				----It means that waht's currently on the port "byte" is the actual generated value.
+					--dataReady <= '1';
+				--end if;
 		end case;
 	end process;
 		
@@ -256,6 +257,8 @@ begin
 				ctrlIn_delayed <= '0';
 				ctrlOut_reg <= '0';
 				seqDone <= '0';
+
+				dataReady <= '0';
 
 				byte <= (others => '0');
 				max_index <= 0;
@@ -279,6 +282,12 @@ begin
 					byte <= buf(6);
 				end if;
 				
+				if current_state = response and counter <= NNN then
+					--It means that waht's currently on the port "byte" is the actual generated value.
+					dataReady <= '1';
+				else
+					dataReady <= '0';
+				end if;
 				
 				if current_state = idle and start = '1' then
 					--This condition will jump in for exactly NNN times and no need to worry about if excessed number are retrieved.
@@ -509,3 +518,11 @@ end architecture;
 --	Treat the byte signal as the output of a register and hold it at the end of one processing cycle.
 --		Thus, the downstream university's cmdProc would work as expected and hope ours is not effected.
 --	Also, those internal changes for the purpose of debugging is removed to keep my code elegant.
+--
+--Updated at 9am, 20/03/2026:
+--	Not great enough.
+--	One obvious problem is, the signal byte is now designed to be a resigter
+--	But the current dataReady signal is a voltage-level.
+--	Considering the delay feature of register, they dismatch with each other.
+--	So, one solution is, to make the dataReady signal to be also registered.
+--	Corrected it and still work in order.
