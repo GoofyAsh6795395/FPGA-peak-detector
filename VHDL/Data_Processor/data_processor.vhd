@@ -237,14 +237,55 @@ begin
 					--Likewise, i++, rather than ++i;				
 
 			when response =>
+				--It looks like we do nothing here, it's because now
+				--everything involved here is positioned in the clocked_datapath process later.
 				null;
-				--if counter <= NNN then
-				----It means that waht's currently on the port "byte" is the actual generated value.
-					--dataReady <= '1';
-				--end if;
 		end case;
 	end process;
 		
+	clocked_datapath:
+	process(clk, reset, current_state, counter, NNN, ctrlOut_reg, start, finished)
+	begin
+		if rising_edge(clk) then
+			if reset = '1' then
+				ctrlOut_reg <= '0';
+				seqDone <= '0';
+				dataReady <= '0';
+				byte <= (others => '0');
+			else
+				--I'll not use the case statement here, even it looks more elegant
+				--However, the case logic will introduce some Mux-chain because another other condition in parallel
+				--must be written under case, rather than together.
+				
+				if counter >= 0 and counter <= NNN then
+					byte <= buf(6);
+				end if;
+				
+				if current_state = idle and start = '1' then
+					--This condition will jump in for exactly NNN times and no need to worry about if excessed number are retrieved.
+					--Therefore, remove the NNN judgement.
+					ctrlOut_reg <= not ctrlOut_reg;
+						--Ctrl1 would be delayed by one cycle, check it later.
+				end if;
+				
+				if current_state = response and counter <= NNN then
+					--It means that waht's currently on the port "byte" is the actual generated value.
+					dataReady <= '1';
+				else
+					dataReady <= '0';
+				end if;
+				
+				if current_state = response and finished = '1' then
+					--Pull up seqDone signal here, very weird, but it's the requirement of university.
+					--Sun of beach, not elegant at all.				
+					seqDone <= '1';
+				else
+					seqDone <= '0';
+				end if;
+			end if;
+		end if;
+	end process;
+	
 	clock:
 	process(clk, reset, current_state, max_reg, ctrlIn, counter_next, finished_reg, NNN_reg, ctrlOut_reg)
 	--To avoid mistakes in simulation, put every signal involved in RHS of assignment and conditions, into the sensitivity list.
@@ -255,12 +296,7 @@ begin
 				finished <= '1';
 				counter <= 0;
 				ctrlIn_delayed <= '0';
-				ctrlOut_reg <= '0';
-				seqDone <= '0';
 
-				dataReady <= '0';
-
-				byte <= (others => '0');
 				max_index <= 0;
 				max <= 0;
 				buf <= (others => (others => '0'));
@@ -277,31 +313,6 @@ begin
 				NNN <= NNN_reg;
 				result <= result_next;
 				current_state <= next_state;
-				
-				if counter >= 0 and counter <= NNN then
-					byte <= buf(6);
-				end if;
-				
-				if current_state = response and counter <= NNN then
-					--It means that waht's currently on the port "byte" is the actual generated value.
-					dataReady <= '1';
-				else
-					dataReady <= '0';
-				end if;
-				
-				if current_state = idle and start = '1' then
-					--This condition will jump in for exactly NNN times and no need to worry about if excessed number are retrieved.
-					--Therefore, remove the NNN judgement.
-					ctrlOut_reg <= not ctrlOut_reg;
-						--Ctrl1 would be delayed by one cycle, check it later.
-				end if;
-				if current_state = response and finished = '1' then
-					--Pull up seqDone signal here, very weird, but it's the requirement of university.
-					--Sun of beach, not elegant at all.				
-					seqDone <= '1';
-				else
-					seqDone <= '0';
-				end if;
 			end if;
 		end if;
 	end process;

@@ -154,6 +154,8 @@ begin
 		variable lsb_ascii, msb_ascii: integer range 0 to 255 := 0;	--Defined as integer, converted to vector when output.
 		
 		variable upper, lower: integer range 0 to 55 := 0;		--For L command to slice the required pieces.
+		
+		variable probe: STD_LOGIC_VECTOR(55 downto 0) := (others => '0');
 	begin
 		--Voltage level, but avoid latch inferrence.
 		data_out <= (others => '0');
@@ -164,6 +166,9 @@ begin
 		msb_ascii := 0;
 		upper := 0;
 		lower := 0;
+		
+		
+		probe := (others => '0');
 		
 		case current_state is
 			when idle =>
@@ -231,10 +236,10 @@ begin
 			when printL =>
 				if printing = '1' then
 					print_req <= '1';
-
+				
 					--Because the output is big endian priority, so index decreases.
-					upper := 55 - counterL * 8;
-					lower := 48 - counterL * 8;
+					upper := 55 - (counterL / 3) * 8;
+					lower := 48 - (counterL / 3) * 8;
 					
 					--Slice.
 					msb := to_integer(unsigned(dataResults_reg(upper downto upper - 3)));
@@ -546,3 +551,8 @@ end architecture;
 --		And the bonus is, the dataConsume from university will not repeatly retrieve new values;
 --	So, another modification is, removing the whole mistake logic, there should not.
 --	The problem of LSB slice of L command is spotted from board test and the boundary is corrected.
+--
+--Modification 9am, at 20/03/2026:
+--	Try to add some probes for command L to identify the pattern and then deduce what causes the problem.
+--	Finally, the upper and lower logic is found wrong.
+--	Corrected, and change the endian.

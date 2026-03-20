@@ -36,13 +36,13 @@ begin
 	maxIndex_packed(11 downto 8) <= maxIndex(2);
 	--MSB is stored at index 2 of this array, while LSB is 0.
 
-	dataResults_packed(55 downto 48) <= dataResults(0);
-	dataResults_packed(47 downto 40) <= dataResults(1);
-	dataResults_packed(39 downto 32) <= dataResults(2);
+	dataResults_packed(55 downto 48) <= dataResults(6);
+	dataResults_packed(47 downto 40) <= dataResults(5);
+	dataResults_packed(39 downto 32) <= dataResults(4);
 	dataResults_packed(31 downto 24) <= dataResults(3);
-	dataResults_packed(23 downto 16) <= dataResults(4);
-	dataResults_packed(15 downto 8) <= dataResults(5);
-	dataResults_packed(7 downto 0) <= dataResults(6);
+	dataResults_packed(23 downto 16) <= dataResults(2);
+	dataResults_packed(15 downto 8) <= dataResults(1);
+	dataResults_packed(7 downto 0) <= dataResults(0);
 	--Following the convention from uni, the latest digit is placed in index from (7 downto 0).
 	--It enough to just ensure the order of printing to be right, namely, from oldest to youngest.
 	--Here, from 0 to 6 of CHAR_ARRAY_TYPE.
