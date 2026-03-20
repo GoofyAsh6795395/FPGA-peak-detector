@@ -35,7 +35,7 @@ entity scheduler is
 end entity;
 
 architecture synth of scheduler is
-	type stateType is (idle, run, printData, printL, printP, printCRLF);
+	type stateType is (idle, run, printData, printL, printP, printDelim);
 	signal current_state, next_state: stateType := idle;
 	signal NNN_reg: STD_LOGIC_VECTOR(11 downto 0) := (others => '0');
 	signal NNN_int: integer range 0 to 1023 := 0;
@@ -46,7 +46,7 @@ architecture synth of scheduler is
 	--The subsequent counters denotes the accumulated times for print to be finished.
 	--Clearly check if there is off-by-one is important.
 	signal counterL: integer range 0 to 21 := 0;
-	signal counterCRLF: integer range 0 to 3 := 0;
+	signal counterDelim: integer range 0 to 10 := 0;
 	signal counterP: integer range 0 to 7 := 0;
 	signal counterData: integer range 0 to 4 := 0;
 		--Literally, count the time of print
@@ -74,6 +74,7 @@ architecture synth of scheduler is
 
 	signal finished: STD_LOGIC := '0';				
 		--An indicator of seqDone, updated in clock process.
+	signal NNN_pending, P_pending, L_pending: STD_LOGIC := '0';
 
 begin
 	numWords <= NNN_reg;
@@ -82,18 +83,13 @@ begin
 	--No need to worry about the type of this output because there is another type-conversion wrapper outside.
 
 	state_transition_logic:
-	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, counterCRLF, print_ack, dataReady)
+	process(current_state, isL, isP, isANNN, finished, counterL, counterP, counterData, counterDelim, print_ack, dataReady, NNN_pending, L_pending, P_pending)
 	begin
 		next_state <= current_state;
 		case current_state is
 			when idle => 
-				--Assume the upstream isANNN, isL, isP is one hot.
-				if isANNN = '1' then
-					next_state <= run;
-				elsif isP = '1' then
-					next_state <= printP;
-				elsif isL = '1' then
-					next_state <= printL;
+				if isANNN = '1' or isP = '1' or isL = '1' then
+					next_state <= printDelim;
 				end if;
 			when run =>
 				if dataReady = '1' then
@@ -110,18 +106,22 @@ begin
 					if finished = '0' then
 						next_state <= run;
 					else
-						next_state <= printCRLF;
+						next_state <= printDelim;
 						--It means now it's going to another stage.
 						--And now, a Cartrige Return is neeeded.
 					end if;
 				else
 					next_state <= printData;
 				end if;
-			when printCRLF =>
-				if counterCRLF = 1 and print_ack = '1' then
-					if isP = '1' then
+			when printDelim =>
+				if counterDelim = 9 and print_ack = '1' then
+					--Assume the upstream isANNN, isL, isP is one hot.
+					if NNN_pending = '1' then
+						--It means now, we finished printing the delimiter and should take actions on upcoming NNN command.
+						next_state <= run;
+					elsif P_pending = '1' then
 						next_state <= printP;
-					elsif isL = '1' then
+					elsif L_pending = '1' then
 						next_state <= printL;
 					else
 						next_state <= idle;
@@ -129,13 +129,13 @@ begin
 				end if;
 			when printL =>
 				if counterL = 19 and print_ack = '1' then
-					next_state <= printCRLF;
+					next_state <= printDelim;
 				else
 					next_state <= printL;
 				end if;
 			when printP =>
 				if counterP = 5 and print_ack = '1' then
-					next_state <= printCRLF;
+					next_state <= printDelim;
 				else
 					next_state <= printP;
 				end if;
@@ -149,13 +149,10 @@ begin
 	--Similar with the process(all) syntax in VHDL-2008, here, I'll manually list all of them to avoid errors.
 	--Same happens below.
 	datapath:
-	process(current_state, dataReady, printing, data, byte, counterL, counterP, counterData,counterCRLF, dataResults_reg, maxIndex_reg)
+	process(current_state, dataReady, printing, data, byte, counterL, counterP, counterData,counterDelim, dataResults_reg, maxIndex_reg)
 		variable lsb, msb: integer range 0 to 31 := 0;
 		variable lsb_ascii, msb_ascii: integer range 0 to 255 := 0;	--Defined as integer, converted to vector when output.
-		
 		variable upper, lower: integer range 0 to 55 := 0;		--For L command to slice the required pieces.
-		
-		variable probe: STD_LOGIC_VECTOR(55 downto 0) := (others => '0');
 	begin
 		--Voltage level, but avoid latch inferrence.
 		data_out <= (others => '0');
@@ -166,9 +163,6 @@ begin
 		msb_ascii := 0;
 		upper := 0;
 		lower := 0;
-		
-		
-		probe := (others => '0');
 		
 		case current_state is
 			when idle =>
@@ -219,13 +213,19 @@ begin
 					print_req <= '0';
 				end if;
 				
-			when printCRLF =>
+			when printDelim =>
 				if printing = '1' then
 					print_req <= '1';	
-					case counterCRLF is
+					case counterDelim is
 						when 0 =>
 							data_out <= "00001010";		--LF
 						when 1 =>
+							data_out <= "00001101";		--CR
+						when 2 to 7 =>
+							data_out <= "00111101";		--Delimiters
+						when 8 =>
+							data_out <= "00001010";		--LF
+						when 9 =>
 							data_out <= "00001101";		--CR
 						when others =>
 							null;
@@ -333,7 +333,7 @@ begin
 				counterL <= 0;
 				counterP <= 0;
 				counterData <= 0;
-				counterCRLF <= 0;
+				counterDelim <= 0;
 				NNN_int <= 0;
 				NNN_reg <= (others => '0');
 				printing <= '0';
@@ -343,6 +343,10 @@ begin
 				current_state <= idle;
 				
 				start <= '0';
+				
+				L_pending <= '0';
+				P_pending <= '0';
+				NNN_pending <= '0';
 				
 			else
 				current_state <= next_state;
@@ -354,7 +358,7 @@ begin
 						--Store those values in case that it disappears later.
 				end if;
 
-				if (current_state = idle and isANNN = '1') or (current_state = printData and next_state = run) then
+				if (current_state = printDelim and next_state = run) or (current_state = printData and next_state = run) then
 					--This long condition above means, the state transition happens and the target is "run".
 					--So at this moment, we need to give out a start signal to data processor.
 					--Start signal is assigned here to keep the property of single cycle.
@@ -364,6 +368,17 @@ begin
 					start <= '0';
 				end if;
 
+				if current_state = printDelim and counterDelim = 9 and print_ack = '1' then
+					--Assume the upstream isANNN, isL, isP is one hot.
+					if NNN_pending = '1' then
+						--This means, this NNN request is going to be consumed after this condition.
+						NNN_pending <= '0';
+					elsif P_pending = '1' then
+						P_pending <= '0';
+					elsif L_pending = '1' then
+						L_pending <= '0';
+					end if;
+				end if;
 
 				case current_state is
 					when idle =>
@@ -371,7 +386,7 @@ begin
 						counterL <= 0;
 						counterP <= 0;
 						counterData <= 0;
-						counterCRLF <= 0;
+						counterDelim <= 0;
 						if isANNN = '1' then
 							--Finished signal does not used anymore after running state
 							--It's a good idea to keep its natural semantics.
@@ -388,6 +403,15 @@ begin
 							ones := to_integer(unsigned(NNN(3 downto 0)));
 					
 							NNN_int <= hundreds * 100 + tens * 10 + ones;
+							NNN_pending <= '1';
+						end if;
+						
+						if isP = '1' then
+							P_pending <= '1';
+						end if;
+						
+						if isL = '1' then
+							L_pending <= '1';
 						end if;
 						
 					when run =>
@@ -405,12 +429,12 @@ begin
 							printing <= '0';
 							counterData <= (counterData + 1) mod 3;
 						end if;
-					when printCRLF =>
+					when printDelim =>
 						if printing = '0' then
 							printing <= '1';
 						elsif print_ack = '1' then
 							printing <= '0';
-							counterCRLF <= (counterL + 1) mod 2;
+							counterDelim <= (counterDelim + 1) mod 10;
 						end if;
 					when printL =>
 						if printing = '0' then
@@ -552,7 +576,10 @@ end architecture;
 --	So, another modification is, removing the whole mistake logic, there should not.
 --	The problem of LSB slice of L command is spotted from board test and the boundary is corrected.
 --
---Modification 9am, at 20/03/2026:
+--Modification at 9am, at 20/03/2026:
 --	Try to add some probes for command L to identify the pattern and then deduce what causes the problem.
 --	Finally, the upper and lower logic is found wrong.
---	Corrected, and change the endian.
+--	Corrected, and change the endian to match the data processor signals.
+--
+--New function at 3pm, at 20/03/2026:
+--	Now it can fully print the delimiter.
