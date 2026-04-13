@@ -82,7 +82,7 @@ b changes,
 	
 	1, 2, 3
 
-锁存推断(LATCH inferrence)
+LATCH inferrence
 1. closure if-else chain: 
 If not, VHDL will keep the original value on other branch (has memory).
 However, not use D-ff, instead, D-latch since the subroutine is trigger by voltage level condition
