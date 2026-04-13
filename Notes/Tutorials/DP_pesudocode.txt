@@ -90,7 +90,7 @@ Convert iterations, loops into FSMs:
 
 1: c = 2
 2: c = 3
-3: c =4
+3: c = 4
 break;
 
 
