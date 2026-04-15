@@ -563,7 +563,6 @@ end architecture;
 --
 --Problems identified at 10pm, 09/03/2026:
 --	The university provided data processor may send dataReady twice even after we pull down the signal "start".
---	Fuck,
 --
 --Modified at 2am, 10/03/2026:
 --	Now this code could successfully deal with a unstable upstream source.
