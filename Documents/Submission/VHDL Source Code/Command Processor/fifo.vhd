@@ -1,0 +1,90 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+
+entity fifo is
+	port(
+		reset: in STD_LOGIC;
+		clk: in STD_LOGIC;
+		enqueue: in STD_LOGIC;
+		dequeue: in STD_LOGIC;
+		isEmpty: out STD_LOGIC;
+		data_in: in STD_LOGIC_VECTOR (7 downto 0);
+		data_out: out STD_LOGIC_VECTOR (7 downto 0)
+	);
+end entity;
+
+architecture algorithm of fifo is
+	--Declare the fifo type and instantiate it. 
+	type memory_type is  array (0 to 7) of STD_LOGIC_VECTOR (7 downto 0);
+	signal queue: memory_type := (others => (others => '0'));	--Aggregate style assignment
+
+	--Register the write pointer, read pointer, counter.
+	--Explicitly indicate the integer range to reduce fan in/out.
+	signal head, tail: integer range 0 to 7 := 0;
+	signal head_reg, tail_reg: integer range 0 to 7 := 0;
+	signal counter, counter_next: integer range 0 to 7 := 0;
+begin
+	data_out <= queue(head);
+	isEmpty <= '1' when counter = 0 else '0';	--Use stablised counter signal, or there may be gliches and functional errors.
+
+	counter_update:
+	process(dequeue, enqueue, counter)
+	begin
+		--To avoid latch inferrence.
+		counter_next <= counter;
+		if dequeue = '1' and enqueue = '0' then
+			if counter /= 0 then	--Dequeue request detected and fifo is not empty.
+				counter_next <= counter - 1;
+			end if;
+		elsif dequeue = '0' and enqueue = '1' then
+			if counter /= 8 then	--Enqueue request detected and fifo is not full.
+				counter_next <= counter + 1;
+			end if;
+		end if;
+	end process;
+	
+	clocked_control_unit:
+	process(clk, reset, head, tail, counter, counter_next)
+	begin
+		if rising_edge(clk) then
+			if reset = '1' then
+				head <= 0;
+				tail <= 0;
+				counter <= 0;
+				queue <= (others => (others => '0'));	--Aggregate style assignment
+			else
+				counter <= counter_next;
+				--Because of the sequential feature of the assignments inside process block.
+				--It could be used in the circumstance where different conditions has their own priority.
+				--Here, dequeue request is checked first to ensure the behaviour under-controlled when dequeue and enqueue are requested at same time.
+				if(dequeue = '1') then
+					if counter /= 0 then
+						head <= (head + 1) mod 8;
+					end if;
+				end if;
+
+				if(enqueue = '1')then
+					--New data will be dumped if fifo is full.
+					--Take care of the combinational loop here, don't use counter_next signal.
+					if counter /= 8 then
+						queue(tail) <= data_in;
+						tail <= (tail + 1) mod 8;
+					end if;
+				end if;
+			end if;
+		end if;
+	end process;
+end architecture;
+
+--Log:
+--
+--Firstly drafted on 23/02/2026
+--
+--Commitment at 11am, 26/02/2026:
+--	Succeed compiling, but untested.
+--
+--Commitment at 3pm, 26/02/2026
+--	Halfly tested, work in order.
+--
+--Updated on 11am, 05/05/2026
+--  Modified the sensitivity list on line 29, based on Vivado's suggestion.
