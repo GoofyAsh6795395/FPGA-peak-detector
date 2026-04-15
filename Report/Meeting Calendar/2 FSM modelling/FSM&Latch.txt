@@ -1,0 +1,109 @@
+...
+
+IEEE
+
+signal a, b: STD_LOGIC_VECTOR (7 downto 0)
+
+if signed(a) > signed(b) then ....
+
+mealy: output = f(state, input)
+moore: output = f(state)
+
+FSM
+1. next_state_logic; based on current state and conditions
+2. update, control
+	if rising_edge(clk) then
+		current_state <= next_state;
+	end if;
+
+	if rising_edge(clk) then
+		q <= d;
+	end if;
+3. output logic
+	if currrent_state = S0 then output <= 1';
+	elsif ....e = s1 then output <= 'x';
+	end if;
+	
+	case currrent_state is
+		when s0 =>
+			...
+		when s1 =>
+			
+		when s2 =>
+
+		when others =>
+			next_state <= s0;
+	end case;
+
+Encoding method for totally three states:
+maybe 00, 01, 10, 11 like binary, where one combination is unused.
+one-hot: 001, 010, 100, 5 undefined: (111) and now, more than half combination is others.
+So it's essential to indicate the behaviour when current state is not defined.
+
+
+	
+	next_state_logic:
+	process(current_state, condition)
+	begin
+	
+	end process;
+
+	update:
+	process(clk)
+	begin
+		
+	end process;
+
+	output logic:
+	process(current_state)
+	begin
+
+	end process;
+
+architecture
+	componnet
+	
+	signal a: fruit;
+	type enum is (bana, appl);
+begin
+	port map..
+	process
+	concurrent assignment
+end architecture;
+
+combinational logic, seq,
+
+
+b changes,
+	1. a <= b;
+	2. c <= a;
+	3. b <= c;
+	4. process(sentivity list)
+	
+	1, 2, 3
+
+LATCH inferrence
+1. closure if-else chain: 
+If not, VHDL will keep the original value on other branch (has memory).
+However, not use D-ff, instead, D-latch since the subroutine is trigger by voltage level condition
+instead of clocking edge.
+
+	process
+	begin
+		if clk = 1 then q <= d;
+	end;	
+
+		
+	process
+	begin
+		if condition then a <= '0';
+		else
+	end;
+
+2. assign at first
+To cover up everything first and do additional changes later if a certain condition of assignment is satifsied.
+
+Register feature
+
+
+
