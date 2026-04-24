@@ -1,4 +1,4 @@
-## About this repository:
+## About this repository
 
 <p>
 This repository is used for the purpose of group collaboration, namely, VCS.<br>
@@ -6,7 +6,7 @@ What's contained here is not only source code itself, also the project plan and 
 Temporary it's private and will be public soon after the code is submitted and reviewed by university.
 </p>
 
-## About this coursework:
+## About this coursework
 
 <p>
 Work done here is a part of assessments involved in the unit of EEME200002 at University of Bristol.<br>
@@ -14,7 +14,7 @@ In general, the desired function on FPGA is to find the peak value from the gene
 then gives out the corresponding information based on the input from PuTTY.
 </p>
 
-A bottom-up approach is utilised in this programme:
+A bottom-up approach is utilised in this program
 <ul>
 	<li>Start from breaking the target into small tasks.</li>
 	<li>Then draft their corresponding FSM, ASM chart on paper.</li>
@@ -58,7 +58,7 @@ Therefore, I have written some C files with a similar function to:
 	<li>prepare to make a comparison in our VHDL code and the generated one, if leisure.</li>
 </ol>
 
-## About us:
+## About us
 <ul>
   <li>The dictator, me, Xinrui Zhu,</li>
   <li>Player A: Yuan Ren,</li>
@@ -67,7 +67,7 @@ Therefore, I have written some C files with a similar function to:
   <li>Player D: Xi Zhao.</li>
 </ul>
 
-## Statement:
+## Statement
 
 Please feel free to clone this repo for any purpose, it's Github here instead of Google Scholar, so you don't need to pay for anything.<br>
 In the end, thanks to my group members, I cannot have such a archivevement without them.
