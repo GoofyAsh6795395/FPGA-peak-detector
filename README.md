@@ -15,7 +15,8 @@ then gives out the corresponding information based on the input from PuTTY.
 </p>
 
 A bottom-up approach is utilised in this programme:
-<ul>Start from breaking the target into small tasks.
+<ul>
+	<li>Start from breaking the target into small tasks.</li>li
 	<li>Then draft their corresponding FSM, ASM chart on paper.</li>
 	<li>Implement them in VHDL firstly, then put them together.</li>
   	<li>After carefully tested in simulation, synthesis it on FPGA.</li>
@@ -41,17 +42,17 @@ For anyone who pursues at least a little serious experience in digital design, l
 		</ol>
 	</li>
 	<li>Optimise the latency:
-		<ul>
+		<ol type = '1'>
 			<li>Pipelining is not required since it will introduce some extra clock cycles and for this task, maybe not ideal.</li>
 			<li>Other techniques like breaking down cascaded MUX, decreasing fan in/out would be more suitable.</li>
-		</ul>
+		</ol>
 	</li>
 	<li>Understand what's happening behind and be proficient at VHDL syntax.
 	</li>
 </ol>
 
 Also, some bad habits like HLS(high level synthesis) from C code, is not prohibited.<br>
-Therefore, I have written some C files with a similar function to 
+Therefore, I have written some C files with a similar function to:
 <ol type = "A">
 	<li>demonstrate the task requirement to my group members </li>
 	<li>prepare to make a comparison in our VHDL code and the generated one, if leisure.</li>
