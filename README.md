@@ -14,13 +14,13 @@ In general, the desired function on FPGA is to find the peak value from the gene
 then gives out the corresponding information based on the input from PuTTY.
 </p>
 
-A bottom-up approach is utilised in this program
-<ul>
+A bottom-up approach is utilised in this program:
+<ol type="1">
 	<li>Start from breaking the target into small tasks.</li>
 	<li>Then draft their corresponding FSM, ASM chart on paper.</li>
 	<li>Implement them in VHDL firstly, then put them together.</li>
   	<li>After carefully tested in simulation, synthesis it on FPGA.</li>
-</ul><br>
+</ol><br>
 
 The tool-chain required ranges from Altera Quaratus Prime to Xilinx Vivado, of course, community free version, 
 so you can carry out some trials easily.
