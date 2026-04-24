@@ -1,10 +1,10 @@
-About this repository:
+##About this repository:
 
 This repository is used for the purpose of group collaboration, namely, VCS.
 What's contained here is not only source code itself, also the project plan and related exercises on RTL.
 Temporary it's private and will be public soon after the code is submitted and reviewed by university.
 
-About this coursework:
+##About this coursework:
 
 Work done here is a part of assessments involved in the unit of EEME200002 at University of Bristol.
 In general, the desired function on FPGA is to find the peak value from the generated sequence, 
@@ -43,16 +43,15 @@ Therefore, I have written some C files with a similar function to
   A, demonstrate the task requirement to my group members; 
   B, prepare to make a comparison in our VHDL code and the generated one, at leisure.
 
-About us:
+##About us:
 
-  The dictator, also the owner of this repo, Xinrui Zhu,
-  Player A: Yuan Ren,
+  The dictator, me, Xinrui Zhu,  Player A: Yuan Ren,
   Player B: Julia Young,
   Player C: Yuhao Jiang,
   Player D: Xi Zhao.
 
-Statements:
+##Statement:
 
 Please feel free to clone this repo for any purpose, it's Github here instead of Google Scholar, so you don't need to pay for anything.
-In the end, thanks to my group members, I cannot have such a archivevement without them.
+In the end, thanks to my group members, I cannot have such a archivevement without them.<br>
 Not at all.
