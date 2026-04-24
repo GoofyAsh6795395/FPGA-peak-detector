@@ -16,7 +16,7 @@ then gives out the corresponding information based on the input from PuTTY.
 
 A bottom-up approach is utilised in this programme:
 <ul>
-	<li>Start from breaking the target into small tasks.</li>li
+	<li>Start from breaking the target into small tasks.</li>
 	<li>Then draft their corresponding FSM, ASM chart on paper.</li>
 	<li>Implement them in VHDL firstly, then put them together.</li>
   	<li>After carefully tested in simulation, synthesis it on FPGA.</li>
